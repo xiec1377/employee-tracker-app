@@ -3,6 +3,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { Employee } from '@/types/employee';
 import { fetchAllEmployees, createEmployee, deleteEmployee, updateEmployee} from '@/lib/api/employees';
+import toast from 'react-hot-toast';
+
 
 const mockEmployees: Employee[] = [
   {
@@ -153,9 +155,10 @@ export function EmployeeTable() {
     });
   };
 
-  const handleAddEmployee = () => {
-    console.log("ADDING NEW EMPLOYEE..")
+  const handleAddEmployee = async () => {
+    console.log("ADDING NEW EMPLOYEE..");
     if (!newEmployee.firstName || !newEmployee.lastName) return;
+  
     const newEmp: Employee = {
       id: employees.length + 1,
       firstName: newEmployee.firstName!,
@@ -168,42 +171,52 @@ export function EmployeeTable() {
       salary: newEmployee.salary || 0,
       status: newEmployee.status || 'active',
     };
-    setEmployees([...employees, newEmp]);
-    setIsFormModalOpen(false);
-    setNewEmployee({});
-    createEmployee(newEmp)
+  
+    try {
+      const updatedEmp = await createEmployee(newEmp);
+      setEmployees([...employees, updatedEmp]);
+      setIsFormModalOpen(false);
+      setNewEmployee({});
+      toast.success('Employee added successfully!');
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to add employee.');
+    }
   };
-
-
-  const handleUpdateEmployee = () => {
+  
+  const handleUpdateEmployee = async () => {
     if (!editingEmployee) return;
     if (!editingEmployee.firstName || !editingEmployee.lastName) return;
   
-    const updatedEmployees = employees.map((emp) =>
-      emp.id === editingEmployee.id ? editingEmployee : emp
-    );
-    setEmployees(updatedEmployees);
-  
-    setIsFormModalOpen(false);
-    setEditingEmployee(null);
-    setNewEmployee({}); 
-  
-    updateEmployee(editingEmployee.id, editingEmployee);
+    try {
+      const updatedEmp = await updateEmployee(editingEmployee.id, editingEmployee);
+      setEmployees(
+        employees.map(emp => (emp.id === updatedEmp.id ? updatedEmp : emp))
+      );
+      setIsFormModalOpen(false);
+      setEditingEmployee(null);
+      setNewEmployee({});
+      toast.success('Employee updated successfully!');
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to update employee.');
+    }
   };
-
-
+  
   const handleDelete = async (id: number) => {
     try {
-      console.log("deleting emplkoyee, ", id)
-      await deleteEmployee(id); 
-      setEmployees(prev => prev.filter(emp => emp.id !== id)); // UI update
-    } catch (err) {
-      console.error(err);
-      alert("Failed to delete employee");
+      console.log("Deleting employee:", id);
+      await deleteEmployee(id);
+      setEmployees(prev => prev.filter(emp => emp.id !== id)); // update UI
+      setIsDeleteModalOpen(false);
+      setDeletedEmployee(0);
+      toast.success('Employee deleted successfully!');
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to delete employee.');
     }
-    setIsDeleteModalOpen(false)
-    setDeletedEmployee(0)
   };
+  
 
   const formData = editingEmployee || newEmployee;
   return (
@@ -334,9 +347,9 @@ export function EmployeeTable() {
                 </td>
               </tr>
             ) : (
-              filteredAndSortedEmployees.map((employee) => (
+              filteredAndSortedEmployees.map((employee, index) => (
                 <tr
-                  key={employee.id}
+                key={`${employee.id}-${index}`}
                   className="hover:bg-zinc-50 dark:hover:bg-zinc-800"
                 >
                   <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-black dark:text-zinc-50">
@@ -523,4 +536,3 @@ export function EmployeeTable() {
     </div>
   );
 }
-
