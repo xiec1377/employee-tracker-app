@@ -103,3 +103,34 @@ export async function deleteEmployee(id: number): Promise<void> {
   }
 }
 
+export async function uploadExcel(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetch(`${API_BASE_URL}/employees/import/`, {
+    method: "POST",
+    body: formData,
+  });
+  console.log("res:", res)
+  return res.json();
+}
+
+
+export async function downloadExcel() {
+  const res = await fetch(`${API_BASE_URL}/employees/export/`, {
+    method: "GET",
+  });
+  console.log("res:", res)
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "employees.xlsx";
+  document.body.appendChild(a);
+  a.click();
+  a.remove(); 
+  window.URL.revokeObjectURL(url);
+  return true; 
+}
+
+
+

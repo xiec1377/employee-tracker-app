@@ -8,7 +8,14 @@
 
 
 from django.urls import path
-from .views import create_employee, delete_employee, get_all_employees, update_employee
+from .views import (
+    create_employee,
+    delete_employee,
+    get_all_employees,
+    update_employee,
+    import_employees,
+    export_employees,
+)
 
 urlpatterns = [
     path("", create_employee, name="create-employee"),  # POST /api/employees/
@@ -24,4 +31,6 @@ urlpatterns = [
     path(
         "<int:id>/edit/", update_employee, name="update-employee"
     ),  # PUT /api/employees/<id>/edit/
+    path("import/", import_employees, name="import-employees"),
+    path("export/", export_employees, name="export-employees"),
 ]

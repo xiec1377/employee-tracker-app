@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import type { Employee } from '@/types/employee';
-import { fetchAllEmployees, createEmployee, deleteEmployee, updateEmployee} from '@/lib/api/employees';
+import { fetchAllEmployees, createEmployee, deleteEmployee, updateEmployee, uploadExcel, downloadExcel} from '@/lib/api/employees';
 import toast from 'react-hot-toast';
 
 
@@ -180,7 +180,7 @@ export function EmployeeTable() {
       toast.success('Employee added successfully!');
     } catch (error) {
       console.error(error);
-      toast.error('Failed to add employee.');
+      toast.error('Failed to add employee...');
     }
   };
   
@@ -199,7 +199,7 @@ export function EmployeeTable() {
       toast.success('Employee updated successfully!');
     } catch (error) {
       console.error(error);
-      toast.error('Failed to update employee.');
+      toast.error('Failed to update employee...');
     }
   };
   
@@ -213,10 +213,39 @@ export function EmployeeTable() {
       toast.success('Employee deleted successfully!');
     } catch (error) {
       console.error(error);
-      toast.error('Failed to delete employee.');
+      toast.error('Failed to delete employee...');
     }
   };
+
+  const handleImportUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
   
+    // const formData = new FormData();
+    // formData.append("file", file);
+  
+    try {
+      await uploadExcel(file);
+      toast.success("Excel file imported successfully!");
+      // Optionally re-fetch employees
+      // await fetchAllEmployees();
+  
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to import Excel file...");
+    }
+  };
+
+  const handleExportFile = async () => {
+    try {
+      await downloadExcel();
+      toast.success("Excel file exported successfully!");
+  
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to export Excel file...");
+    }
+  };
 
   const formData = editingEmployee || newEmployee;
   return (
@@ -228,6 +257,24 @@ export function EmployeeTable() {
         >
           Add
         </button>
+        <input
+          type="file"
+          id="excelUpload"
+          accept=".xlsx,.xls"
+          className="hidden"
+          onChange={handleImportUpload}
+        />
+
+        <button
+          onClick={() => document.getElementById("excelUpload")!.click()}
+          className="bg-blue-500 px-3 py-1 text-white rounded"
+        >
+          Import
+        </button>
+        <button
+          onClick={handleExportFile}
+          className="bg-blue-500 px-3 py-1 text-white rounded"
+        > Export </button>
         <div className="flex-1">
           <input
             type="text"

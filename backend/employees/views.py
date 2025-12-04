@@ -1,8 +1,11 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser
 from .services.employee_service import EmployeeService
 from .serializers import EmployeeSerializer
+from django.http import HttpResponse
 
 
 @api_view(["GET"])
@@ -63,3 +66,20 @@ def delete_employee(request, id):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         return Response({"error": "Internal server error"}, status=500)
+
+
+@api_view(["POST"])
+@parser_classes([MultiPartParser])
+def import_employees(request):
+    try:
+        excel_file = request.FILES["file"]
+        result = EmployeeService.import_from_excel(excel_file)
+        return Response(result, status=200)
+    except KeyError:
+        return Response({"error": "File not provided"}, status=400)
+
+
+@api_view(["GET"])
+def export_employees(request):
+    response: HttpResponse = EmployeeService.export_to_excel()
+    return response
