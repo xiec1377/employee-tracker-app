@@ -2,6 +2,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from .services.employee_service import EmployeeService
+from .serializers import EmployeeSerializer
 
 
 @api_view(["GET"])
@@ -17,26 +18,36 @@ def get_all_employees(request):
 
 @api_view(["POST"])
 def create_employee(request):
-    print("here...")
     print("employee", request.data)
     try:
         employee = EmployeeService.create_employee(request.data)
-        return Response(
-            {
-                "id": employee.id,
-                "first_name": employee.first_name,
-                "last_name": employee.last_name,
-                "email": employee.email,
-                "department": employee.department,
-                "position": employee.position,
-                "hire_date": employee.hire_date,
-                "salary": employee.salary,
-                "status": employee.status,
-            },
-            status=status.HTTP_201_CREATED,
-        )
+        serializer = EmployeeSerializer(employee)
+        return Response(serializer.data, status=201)
     except ValueError as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["PATCH"])
+def update_employee(request, id):
+    print(f"Updating employee {id}")
+    try:
+        updated_employee = EmployeeService.update_employee(id, request.data)
+        serializer = EmployeeSerializer(updated_employee)
+
+        return Response(
+            {
+                "message": f"Employee {id} updated successfully",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    except ValueError as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        print(str(e))
+        return Response({"error": "Internal server error"}, status=500)
 
 
 @api_view(["DELETE"])

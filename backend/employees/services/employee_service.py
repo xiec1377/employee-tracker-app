@@ -1,6 +1,7 @@
 from ..repositories.employee_repo import EmployeeRepository
 from ..models import Employee
 from bson.decimal128 import Decimal128
+from ..serializers import EmployeeSerializer
 
 
 class EmployeeService:
@@ -29,6 +30,43 @@ class EmployeeService:
             raise ValueError("Employee with this email already exists.")
 
         employee = EmployeeRepository.create_employee(model_data)
+        print("employee---- ", employee)
+        return employee
+        # serializer = EmployeeSerializer(employee)
+        # return serializer.data
+
+    @staticmethod
+    def update_employee(id: int, data: dict) -> Employee:
+        """
+        Update employee
+        """
+        mapping = {
+            "firstName": "first_name",
+            "lastName": "last_name",
+            "department": "department",
+            "position": "position",
+            # "hireDate": "hire_date",  # optional
+            "status": "status",
+            "email": "email",
+            "phone": "phone",
+            "salary": "salary",
+        }
+        model_data = {mapping[k]: v for k, v in data.items() if k in mapping}
+        employee = EmployeeRepository.get_employee_by_id(id)
+        if not employee:
+            raise ValueError(f"Employee with id {id} does not exist.")
+
+        # Optional: check for email conflict if email is being updated
+        if "email" in model_data and model_data["email"] != employee.email:
+            existing = EmployeeRepository.get_employee_by_email(model_data["email"])
+            if existing:
+                raise ValueError("Another employee with this email already exists.")
+
+        # Update fields
+        for key, value in model_data.items():
+            setattr(employee, key, value)
+
+        EmployeeRepository.save_employee(employee)
         return employee
 
     @staticmethod

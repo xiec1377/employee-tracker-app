@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import type { Employee } from '@/types/employee';
-import { fetchAllEmployees, createEmployee, deleteEmployee} from '@/lib/api/employees';
+import { fetchAllEmployees, createEmployee, deleteEmployee, updateEmployee} from '@/lib/api/employees';
 
 const mockEmployees: Employee[] = [
   {
@@ -52,8 +52,12 @@ export function EmployeeTable() {
     key: keyof Employee | null;
     direction: 'asc' | 'desc';
   }>({ key: null, direction: 'asc' });
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [newEmployee, setNewEmployee] = useState<Partial<Employee>>({});
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [deletedEmployee, setDeletedEmployee] = useState(0);
+
 
 
   useEffect(() => {
@@ -164,14 +168,31 @@ export function EmployeeTable() {
       salary: newEmployee.salary || 0,
       status: newEmployee.status || 'active',
     };
-    // setEmployees([...employees, newEmp]);
-    setIsModalOpen(false);
+    setEmployees([...employees, newEmp]);
+    setIsFormModalOpen(false);
     setNewEmployee({});
     createEmployee(newEmp)
   };
 
+
+  const handleUpdateEmployee = () => {
+    if (!editingEmployee) return;
+    if (!editingEmployee.firstName || !editingEmployee.lastName) return;
+  
+    const updatedEmployees = employees.map((emp) =>
+      emp.id === editingEmployee.id ? editingEmployee : emp
+    );
+    setEmployees(updatedEmployees);
+  
+    setIsFormModalOpen(false);
+    setEditingEmployee(null);
+    setNewEmployee({}); 
+  
+    updateEmployee(editingEmployee.id, editingEmployee);
+  };
+
+
   const handleDelete = async (id: number) => {
-    // if (!confirm("Delete this employee?")) return;
     try {
       console.log("deleting emplkoyee, ", id)
       await deleteEmployee(id); 
@@ -180,12 +201,16 @@ export function EmployeeTable() {
       console.error(err);
       alert("Failed to delete employee");
     }
+    setIsDeleteModalOpen(false)
+    setDeletedEmployee(0)
   };
+
+  const formData = editingEmployee || newEmployee;
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => setIsFormModalOpen(true)}
           className="bg-blue-500 px-3 py-1 text-white rounded"
         >
           Add
@@ -339,8 +364,8 @@ export function EmployeeTable() {
                     {getStatusBadge(employee.status)}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2">
-                    <button className="rounded-md bg-blue-500 px-2 py-1 text-white hover:bg-blue-600">Edit</button>
-                    <button className="rounded-md bg-red-500 px-2 py-1 text-white hover:bg-red-600" onClick={()=> handleDelete(employee.id)}>Delete</button>
+                    <button className="rounded-md bg-blue-500 px-2 py-1 text-white hover:bg-blue-600" onClick={() => {setEditingEmployee(employee); setIsFormModalOpen(true)}}>Edit</button>
+                    <button className="rounded-md bg-red-500 px-2 py-1 text-white hover:bg-red-600" onClick={()=> {setDeletedEmployee(employee.id); setIsDeleteModalOpen(true)}}>Delete</button>
                   </td>
                 </tr>
               ))
@@ -352,75 +377,144 @@ export function EmployeeTable() {
         Showing {filteredAndSortedEmployees.length} of {employees.length}{' '}
         employees
       </div>
-      {/* Modal */}
-      {isModalOpen && (
+      {isFormModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white dark:bg-zinc-900 rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-bold mb-4">Add New Employee</h2>
+            <h2 className="text-lg font-bold mb-4">
+              {editingEmployee ? 'Edit Employee' : 'Add New Employee'}
+            </h2>
             <div className="flex flex-col gap-2">
               <input
                 placeholder="First Name"
-                value={newEmployee.firstName || ''}
-                onChange={(e) => setNewEmployee({ ...newEmployee, firstName: e.target.value })}
+                value={formData.firstName || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  editingEmployee
+                    ? setEditingEmployee({ ...editingEmployee, firstName: value })
+                    : setNewEmployee({ ...newEmployee, firstName: value });
+                }}
               />
               <input
                 placeholder="Last Name"
-                value={newEmployee.lastName || ''}
-                onChange={(e) => setNewEmployee({ ...newEmployee, lastName: e.target.value })}
+                value={formData.lastName || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  editingEmployee
+                    ? setEditingEmployee({ ...editingEmployee, lastName: value })
+                    : setNewEmployee({ ...newEmployee, lastName: value });
+                }}
               />
               <input
                 placeholder="Email"
-                value={newEmployee.email || ''}
-                onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
+                value={formData.email || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  editingEmployee
+                    ? setEditingEmployee({ ...editingEmployee, email: value })
+                    : setNewEmployee({ ...newEmployee, email: value });
+                }}
               />
               <input
                 placeholder="Phone"
-                value={newEmployee.phone || ''}
-                onChange={(e) => setNewEmployee({ ...newEmployee, phone: e.target.value })}
+                value={formData.phone || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  editingEmployee
+                    ? setEditingEmployee({ ...editingEmployee, phone: value })
+                    : setNewEmployee({ ...newEmployee, phone: value });
+                }}
               />
               <input
                 placeholder="Department"
-                value={newEmployee.department || ''}
-                onChange={(e) => setNewEmployee({ ...newEmployee, department: e.target.value })}
+                value={formData.department || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  editingEmployee
+                    ? setEditingEmployee({ ...editingEmployee, department: value })
+                    : setNewEmployee({ ...newEmployee, department: value });
+                }}
               />
               <input
                 placeholder="Position"
-                value={newEmployee.position || ''}
-                onChange={(e) => setNewEmployee({ ...newEmployee, position: e.target.value })}
+                value={formData.position || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  editingEmployee
+                    ? setEditingEmployee({ ...editingEmployee, position: value })
+                    : setNewEmployee({ ...newEmployee, position: value });
+                }}
               />
               <input
                 placeholder="Hire Date"
                 type="date"
-                value={newEmployee.hireDate?.split('T')[0] || ''}
-                onChange={(e) => setNewEmployee({ ...newEmployee, hireDate: e.target.value })}
+                value={formData.hireDate?.split('T')[0] || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  editingEmployee
+                    ? setEditingEmployee({ ...editingEmployee, hireDate: value })
+                    : setNewEmployee({ ...newEmployee, hireDate: value });
+                }}
               />
               <input
                 placeholder="Salary"
                 type="number"
-                value={newEmployee.salary || ''}
-                onChange={(e) => setNewEmployee({ ...newEmployee, salary: Number(e.target.value) })}
+                value={formData.salary || ''}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  editingEmployee
+                    ? setEditingEmployee({ ...editingEmployee, salary: value })
+                    : setNewEmployee({ ...newEmployee, salary: value });
+                }}
               />
               <select
-                value={newEmployee.status || 'active'}
-                onChange={(e) => setNewEmployee({ ...newEmployee, status: e.target.value as Employee['status'] })}
+                value={formData.status || 'active'}
+                onChange={(e) => {
+                  const value = e.target.value as Employee['status'];
+                  editingEmployee
+                    ? setEditingEmployee({ ...editingEmployee, status: value })
+                    : setNewEmployee({ ...newEmployee, status: value });
+                }}
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
                 <option value="on_leave">On Leave</option>
               </select>
             </div>
+
             <div className="mt-4 flex justify-end gap-2">
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => setIsFormModalOpen(false)}
                 className="bg-gray-500 px-3 py-1 text-white rounded"
               >
                 Cancel
               </button>
               <button
-                onClick={handleAddEmployee}
+                onClick={editingEmployee ? handleUpdateEmployee : handleAddEmployee}
                 className="bg-blue-500 px-3 py-1 text-white rounded"
               >
-                Add
+                {editingEmployee ? 'Update' : 'Add'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-zinc-900 rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-lg font-bold mb-4">Are you sure you want to delete?</h2>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="bg-gray-500 px-3 py-1 text-white rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={()=>handleDelete(deletedEmployee)}
+                className="bg-blue-500 px-3 py-1 text-white rounded"
+              >
+                Delete
               </button>
             </div>
           </div>

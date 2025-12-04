@@ -69,7 +69,7 @@ export async function createEmployee(employeeData: Omit<Employee, 'id'>): Promis
 
 export async function updateEmployee(id: number, employeeData: Partial<Employee>): Promise<Employee> {
   try {
-    const response = await fetch(`${API_BASE_URL}/employees/${id}/`, {
+    const response = await fetch(`${API_BASE_URL}/employees/${id}/edit/`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',

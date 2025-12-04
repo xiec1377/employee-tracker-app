@@ -46,3 +46,8 @@ class EmployeeRepository:
         Deletes employee from database.
         """
         employee.delete()
+
+    @staticmethod
+    def save_employee(employee):
+        employee.save()
+        return employee
