@@ -2,10 +2,10 @@ import type { Employee } from '@/types/employee';
 
 const API_BASE_URL = 'http://localhost:8000/api'; // process.env.NEXT_PUBLIC_API_URL || ;
 
-export async function fetchEmployees(): Promise<Employee[]> {
-  console.log("fetching employees...")
+export async function fetchAllEmployees(): Promise<Employee[]> {
+  console.log("fetching all employees...")
   try {
-    const response = await fetch(`${API_BASE_URL}/employees/`, {
+    const response = await fetch(`${API_BASE_URL}/employees/all/`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import type { Employee } from '@/types/employee';
-import { fetchEmployees, createEmployee} from '@/lib/api/employees';
+import { fetchAllEmployees, createEmployee} from '@/lib/api/employees';
 
 const mockEmployees: Employee[] = [
   {
@@ -56,15 +56,12 @@ export function EmployeeTable() {
   const [newEmployee, setNewEmployee] = useState<Partial<Employee>>({});
 
 
-  // useEffect(() => {
-  //   async function loadEmployees() {
-  //     console.log("loading employees on useeffect...")
-  //     const data = await fetchEmployees();
-  //     console.log("data of fetched employees:", data)
-  //     setEmployees(data);
-  //   }
-  //   loadEmployees();
-  // }, []);
+  useEffect(() => {
+    (async () => {
+      const data = await fetchAllEmployees();
+      setEmployees(data);
+    })();
+  }, []);
 
   // useMemo hook for caching expensive filtering calculatiosn
   const departments = useMemo(

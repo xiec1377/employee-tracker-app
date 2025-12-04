@@ -4,6 +4,17 @@ from rest_framework import status
 from .services.employee_service import EmployeeService
 
 
+@api_view(["GET"])
+def get_all_employees(request):
+    print("employees")
+    try:
+        employees = EmployeeService.get_employees()
+        print("employees:", employees)
+        return Response(employees, status=status.HTTP_200_OK)
+    except ValueError as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(["POST"])
 def create_employee(request):
     print("here...")
