@@ -5,6 +5,16 @@ from ..models import Employee
 
 class EmployeeRepository:
     @staticmethod
+    def get_employee_by_id(employee_id):
+        """
+        Get employee by id from database.
+        """
+        try:
+            return Employee.objects.get(id=employee_id)
+        except Employee.DoesNotExist:
+            return None
+
+    @staticmethod
     def create_employee(employee_data: dict) -> Employee:
         """
         Creates a new Employee in the database.
@@ -29,3 +39,10 @@ class EmployeeRepository:
         Returns all Employee records from the database.
         """
         return list(Employee.objects.all())
+
+    @staticmethod
+    def delete_employee(employee):
+        """
+        Deletes employee from database.
+        """
+        employee.delete()

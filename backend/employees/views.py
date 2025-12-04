@@ -37,3 +37,18 @@ def create_employee(request):
         )
     except ValueError as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["DELETE"])
+def delete_employee(request, id):
+    print(f"delete employee {id}")
+    try:
+        EmployeeService.delete_employee(id)
+        return Response(
+            {"message": f"Employee {id} deleted successfully"},
+            status=status.HTTP_200_OK,
+        )
+    except ValueError as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({"error": "Internal server error"}, status=500)

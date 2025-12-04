@@ -61,3 +61,12 @@ class EmployeeService:
             )
 
         return employee_list
+
+    @staticmethod
+    def delete_employee(employee_id):
+        employee = EmployeeRepository.get_employee_by_id(employee_id)
+
+        if not employee:
+            raise ValueError("Employee not found")
+
+        return EmployeeRepository.delete_employee(employee)

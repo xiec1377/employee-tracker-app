@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import type { Employee } from '@/types/employee';
-import { fetchAllEmployees, createEmployee} from '@/lib/api/employees';
+import { fetchAllEmployees, createEmployee, deleteEmployee} from '@/lib/api/employees';
 
 const mockEmployees: Employee[] = [
   {
@@ -170,6 +170,17 @@ export function EmployeeTable() {
     createEmployee(newEmp)
   };
 
+  const handleDelete = async (id: number) => {
+    // if (!confirm("Delete this employee?")) return;
+    try {
+      console.log("deleting emplkoyee, ", id)
+      await deleteEmployee(id); 
+      setEmployees(prev => prev.filter(emp => emp.id !== id)); // UI update
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete employee");
+    }
+  };
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -329,7 +340,7 @@ export function EmployeeTable() {
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2">
                     <button className="rounded-md bg-blue-500 px-2 py-1 text-white hover:bg-blue-600">Edit</button>
-                    <button className="rounded-md bg-red-500 px-2 py-1 text-white hover:bg-red-600">Delete</button>
+                    <button className="rounded-md bg-red-500 px-2 py-1 text-white hover:bg-red-600" onClick={()=> handleDelete(employee.id)}>Delete</button>
                   </td>
                 </tr>
               ))
