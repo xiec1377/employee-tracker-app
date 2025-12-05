@@ -2,6 +2,29 @@ import type { Employee } from '@/types/employee';
 
 const API_BASE_URL = 'http://localhost:8000/api'; // process.env.NEXT_PUBLIC_API_URL || ;
 
+export async function fetchEmployees(params: {
+  page: number;
+  page_size: number;
+  search?: string;
+  department?: string;
+  ordering?: string;
+}) {
+  const query = new URLSearchParams();
+
+  query.set("page", String(params.page));
+  query.set("page_size", String(params.page_size));
+
+  if (params.search) query.set("search", params.search);
+  if (params.department) query.set("department", params.department);
+  if (params.ordering) query.set("ordering", params.ordering);
+
+  const res = await fetch(`/api/employees/?${query.toString()}`, {
+    method: "GET",
+  });
+
+  return res;
+}
+
 export async function fetchAllEmployees(): Promise<Response> {
   console.log("fetching all employees...")
   try {

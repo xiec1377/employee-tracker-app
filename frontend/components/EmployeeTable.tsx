@@ -2,8 +2,9 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import type { Employee } from '@/types/employee';
-import { fetchAllEmployees, createEmployee, deleteEmployee, updateEmployee, uploadExcel, downloadExcel} from '@/lib/api/employees';
+import { fetchEmployees, fetchAllEmployees, createEmployee, deleteEmployee, updateEmployee, uploadExcel, downloadExcel} from '@/lib/api/employees';
 import toast from 'react-hot-toast';
+import { formatPhone, formatPhoneInput } from '@/utils/formatPhone';
 
 
 const mockEmployees: Employee[] = [
@@ -60,6 +61,12 @@ export function EmployeeTable() {
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [deletedEmployee, setDeletedEmployee] = useState(0);
 
+  // pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+
 
   useEffect(() => {
     const loadEmployees = async () => {
@@ -89,6 +96,47 @@ export function EmployeeTable() {
   
     loadEmployees();
   }, []);
+
+  // useEffect(() => {
+  //   const loadEmployees = async () => {
+  //     try {
+  //       setIsLoading(true);
+  
+  //       const res = await fetchEmployees({
+  //         page,
+  //         page_size: pageSize,
+  //         search: searchTerm || undefined,
+  //         department: filterDepartment !== "all" ? filterDepartment : undefined,
+  //         ordering: sortConfig.key
+  //           ? `${sortConfig.direction === "desc" ? "-" : ""}${sortConfig.key}`
+  //           : undefined,
+  //       });
+  
+  //       if (res.status === 429) {
+  //         toast.error("Too many requests. Please try again later.");
+  //         return;
+  //       }
+  
+  //       if (!res.ok) {
+  //         toast.error("Failed to load employees...");
+  //         return;
+  //       }
+  
+  //       const data = await res.json(); // DRF style: { count, next, previous, results }
+  
+  //       setEmployees(data.results || []);
+  //       setTotalCount(data.count ?? 0);
+  //     } catch (error) {
+  //       console.error("Error loading employees:", error);
+  //       toast.error("Failed to load employees...");
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+  
+  //   loadEmployees();
+  // }, [page, pageSize, searchTerm, filterDepartment, sortConfig]);
+  
   
   // useMemo hook for caching expensive filtering calculatiosn
   const departments = useMemo(
@@ -339,7 +387,7 @@ export function EmployeeTable() {
     <div className="space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <button
-          onClick={() => setIsFormModalOpen(true)}
+          onClick={() => {setIsFormModalOpen(true); setEditingEmployee(null); setNewEmployee({});}}
           className="bg-blue-500 px-3 py-1 text-white rounded"
         >
           Add
@@ -365,7 +413,7 @@ export function EmployeeTable() {
         <div className="flex-1">
           <input
             type="text"
-            placeholder="Search employees..."
+            placeholder="Search employees, email, department, position..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-black placeholder-zinc-500 focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
@@ -474,16 +522,16 @@ export function EmployeeTable() {
             {filteredAndSortedEmployees.length === 0 ? (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={9}
                   className="px-6 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400"
                 >
-                  No employees found.
+                  {isLoading ? "Loading employees..." : "No employees found."}
                 </td>
               </tr>
             ) : (
               filteredAndSortedEmployees.map((employee, index) => (
                 <tr
-                key={`${employee.id}-${index}`}
+                  key={`${employee.id}-${index}`}
                   className="hover:bg-zinc-50 dark:hover:bg-zinc-800"
                 >
                   <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-black dark:text-zinc-50">
@@ -494,6 +542,7 @@ export function EmployeeTable() {
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">
                     {employee.phone}
+                    {/* {formatPhone(employee.phone)} */}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">
                     {employee.department}
@@ -511,13 +560,30 @@ export function EmployeeTable() {
                     {getStatusBadge(employee.status)}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2">
-                    <button className="rounded-md bg-blue-500 px-2 py-1 text-white hover:bg-blue-600" onClick={() => {setEditingEmployee(employee); setIsFormModalOpen(true)}}>Edit</button>
-                    <button className="rounded-md bg-red-500 px-2 py-1 text-white hover:bg-red-600" onClick={()=> {setDeletedEmployee(employee.id); setIsDeleteModalOpen(true)}}>Delete</button>
+                    <button
+                      className="rounded-md bg-blue-500 px-2 py-1 text-white hover:bg-blue-600"
+                      onClick={() => {
+                        setEditingEmployee(employee);
+                        setIsFormModalOpen(true);
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="rounded-md bg-red-500 px-2 py-1 text-white hover:bg-red-600"
+                      onClick={() => {
+                        setDeletedEmployee(employee.id);
+                        setIsDeleteModalOpen(true);
+                      }}
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))
             )}
           </tbody>
+
         </table>
       </div>
       <div className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -525,125 +591,215 @@ export function EmployeeTable() {
         employees
       </div>
       {isFormModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white dark:bg-zinc-900 rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-bold mb-4">
-              {editingEmployee ? 'Edit Employee' : 'Add New Employee'}
-            </h2>
-            <div className="flex flex-col gap-2">
-              <input
-                placeholder="First Name"
-                value={formData.firstName || ''}
+       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+       <div className="relative bg-white dark:bg-zinc-900 rounded-lg p-6 w-full max-w-md">
+         <button
+           onClick={() => setIsFormModalOpen(false)}
+           className="absolute top-3 right-3 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+           aria-label="Close"
+         >
+           ✕
+         </button>
+         <h2 className="text-xl font-bold mb-4">
+           {editingEmployee ? "Edit Employee" : "Add New Employee"}
+         </h2>
+         <div className="flex flex-col gap-3 w-full">
+           <div className="flex flex-row gap-3 w-full">
+             <div className="flex flex-col gap-1 flex-1">
+               <label htmlFor="firstName" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                 First Name
+               </label>
+               <input
+                 id="firstName"
+                 placeholder="First Name"
+                 value={formData.firstName || ""}
+                 onChange={(e) => {
+                   const value = e.target.value;
+                   editingEmployee
+                     ? setEditingEmployee({ ...editingEmployee, firstName: value })
+                     : setNewEmployee({ ...newEmployee, firstName: value });
+                 }}
+                 className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-black placeholder-zinc-500 focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
+                 />
+             </div>
+     
+             <div className="flex flex-col gap-1 flex-1">
+               <label htmlFor="lastName" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                 Last Name
+               </label>
+               <input
+                 id="lastName"
+                 placeholder="Last Name"
+                 value={formData.lastName || ""}
+                 onChange={(e) => {
+                   const value = e.target.value;
+                   editingEmployee
+                     ? setEditingEmployee({ ...editingEmployee, lastName: value })
+                     : setNewEmployee({ ...newEmployee, lastName: value });
+                 }}
+                 className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-black placeholder-zinc-500 focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
+               />
+             </div>
+           </div>
+     
+           {/* Email */}
+           <div className="flex flex-col gap-1">
+             <label htmlFor="email" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+               Email
+             </label>
+             <input
+               id="email"
+               placeholder="Email"
+               value={formData.email || ""}
+               onChange={(e) => {
+                 const value = e.target.value;
+                 editingEmployee
+                   ? setEditingEmployee({ ...editingEmployee, email: value })
+                   : setNewEmployee({ ...newEmployee, email: value });
+               }}
+               className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-black placeholder-zinc-500 focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
+               />
+           </div>
+     
+           {/* Phone */}
+           <div className="flex flex-col gap-1">
+             <label htmlFor="phone" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+               Phone
+             </label>
+             <input
+               id="phone"
+               placeholder="Phone"
+               value={editingEmployee?.phone || newEmployee.phone || ""}
+               onChange={(e) => {
+                 const formatted = formatPhoneInput(e.target.value);
+                 if (editingEmployee) {
+                   setEditingEmployee({ ...editingEmployee, phone: formatted });
+                 } else {
+                   setNewEmployee({ ...newEmployee, phone: formatted });
+                 }
+               }}
+             className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-black placeholder-zinc-500 focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
+             />
+           </div>
+     
+           {/* Department */}
+           <div className="flex flex-col gap-1">
+             <label htmlFor="department" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+               Department
+             </label>
+             <input
+               id="department"
+               placeholder="Department"
+               value={formData.department || ""}
+               onChange={(e) => {
+                 const value = e.target.value;
+                 editingEmployee
+                   ? setEditingEmployee({ ...editingEmployee, department: value })
+                   : setNewEmployee({ ...newEmployee, department: value });
+               }}
+               className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-black placeholder-zinc-500 focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
+             />
+           </div>
+     
+           {/* Position */}
+           <div className="flex flex-col gap-1">
+             <label htmlFor="position" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+               Position
+             </label>
+             <input
+               id="position"
+               placeholder="Position"
+               value={formData.position || ""}
+               onChange={(e) => {
+                 const value = e.target.value;
+                 editingEmployee
+                   ? setEditingEmployee({ ...editingEmployee, position: value })
+                   : setNewEmployee({ ...newEmployee, position: value });
+               }}
+             className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-black placeholder-zinc-500 focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
+             />
+           </div>
+     
+           {/* Hire Date */}
+           <div className="flex flex-col gap-1">
+             <label htmlFor="hireDate" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+               Hire Date
+             </label>
+             <input
+               id="hireDate"
+               type="date"
+               value={formData.hireDate?.split("T")[0] || ""}
+               onChange={(e) => {
+                 const value = e.target.value;
+                 editingEmployee
+                   ? setEditingEmployee({ ...editingEmployee, hireDate: value })
+                   : setNewEmployee({ ...newEmployee, hireDate: value });
+               }}
+              className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-black placeholder-zinc-500 focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
+             />
+           </div>
+     
+           {/* Salary */}
+           <div className="flex flex-col gap-1">
+             <label htmlFor="salary" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+               Salary
+             </label>
+             <input
+               id="salary"
+               type="number"
+               placeholder="Salary"
+               value={formData.salary || ""}
+               onChange={(e) => {
+                 const value = Number(e.target.value);
+                 editingEmployee
+                   ? setEditingEmployee({ ...editingEmployee, salary: value })
+                   : setNewEmployee({ ...newEmployee, salary: value });
+               }}
+               className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-black placeholder-zinc-500 focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
+             />
+           </div>
+     
+           {/* Status */}
+           <div className="flex flex-col gap-1">
+             <label htmlFor="status" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+               Status
+             </label>
+             <select
+                id="status"
+                value={formData.status || "active"}
                 onChange={(e) => {
-                  const value = e.target.value;
-                  editingEmployee
-                    ? setEditingEmployee({ ...editingEmployee, firstName: value })
-                    : setNewEmployee({ ...newEmployee, firstName: value });
-                }}
-              />
-              <input
-                placeholder="Last Name"
-                value={formData.lastName || ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  editingEmployee
-                    ? setEditingEmployee({ ...editingEmployee, lastName: value })
-                    : setNewEmployee({ ...newEmployee, lastName: value });
-                }}
-              />
-              <input
-                placeholder="Email"
-                value={formData.email || ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  editingEmployee
-                    ? setEditingEmployee({ ...editingEmployee, email: value })
-                    : setNewEmployee({ ...newEmployee, email: value });
-                }}
-              />
-              <input
-                placeholder="Phone"
-                value={formData.phone || ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  editingEmployee
-                    ? setEditingEmployee({ ...editingEmployee, phone: value })
-                    : setNewEmployee({ ...newEmployee, phone: value });
-                }}
-              />
-              <input
-                placeholder="Department"
-                value={formData.department || ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  editingEmployee
-                    ? setEditingEmployee({ ...editingEmployee, department: value })
-                    : setNewEmployee({ ...newEmployee, department: value });
-                }}
-              />
-              <input
-                placeholder="Position"
-                value={formData.position || ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  editingEmployee
-                    ? setEditingEmployee({ ...editingEmployee, position: value })
-                    : setNewEmployee({ ...newEmployee, position: value });
-                }}
-              />
-              <input
-                placeholder="Hire Date"
-                type="date"
-                value={formData.hireDate?.split('T')[0] || ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  editingEmployee
-                    ? setEditingEmployee({ ...editingEmployee, hireDate: value })
-                    : setNewEmployee({ ...newEmployee, hireDate: value });
-                }}
-              />
-              <input
-                placeholder="Salary"
-                type="number"
-                value={formData.salary || ''}
-                onChange={(e) => {
-                  const value = Number(e.target.value);
-                  editingEmployee
-                    ? setEditingEmployee({ ...editingEmployee, salary: value })
-                    : setNewEmployee({ ...newEmployee, salary: value });
-                }}
-              />
-              <select
-                value={formData.status || 'active'}
-                onChange={(e) => {
-                  const value = e.target.value as Employee['status'];
+                  const value = e.target.value as Employee["status"];
                   editingEmployee
                     ? setEditingEmployee({ ...editingEmployee, status: value })
                     : setNewEmployee({ ...newEmployee, status: value });
                 }}
+                className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-black placeholder-zinc-500 focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
                 <option value="on_leave">On Leave</option>
               </select>
-            </div>
-
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={() => setIsFormModalOpen(false)}
-                className="bg-gray-500 px-3 py-1 text-white rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={editingEmployee ? handleUpdateEmployee : handleAddEmployee}
-                className="bg-blue-500 px-3 py-1 text-white rounded"
-              >
-                {editingEmployee ? 'Update' : 'Add'}
-              </button>
-            </div>
-          </div>
-        </div>
+           </div>
+         </div>
+     
+         {/* Buttons */}
+         <div className="mt-4 flex justify-end gap-2">
+           <button
+             onClick={() => setIsFormModalOpen(false)}
+             className="bg-gray-500 px-3 py-1 text-white rounded"
+           >
+             Cancel
+           </button>
+           <button
+             onClick={editingEmployee ? handleUpdateEmployee : handleAddEmployee}
+             className="bg-blue-500 px-3 py-1 text-white rounded"
+           >
+             {editingEmployee ? "Update" : "Add"}
+           </button>
+         </div>
+       </div>
+     </div>
+     
       )}
 
       {isDeleteModalOpen && (
