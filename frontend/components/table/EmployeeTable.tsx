@@ -25,7 +25,7 @@ import {
 } from '@deemlol/next-icons';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/formatDate';
-import { TableCell } from './table/TableCell';
+import { TableCell } from './TableCell';
 
 import { Action } from '@/types/action';
 
