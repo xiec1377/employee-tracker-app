@@ -11,6 +11,8 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/formatDate';
 import { TableCell } from './table/TableCell';
 
+import { Action } from '@/types/action';
+
 
 // const mockEmployees: Employee[] = [
 //   {
@@ -74,78 +76,83 @@ export function EmployeeTable() {
 
   const [errors, setErrors] = useState<Partial<Record<keyof Employee, string>>>({});
 
+  // undo stack
+  const [undoStack, setUndoStack] = useState<Action[]>([]);
+
 // pagination
-  useEffect(() => {
-    const loadEmployees = async () => {
-      try {
-        setIsLoading(true);
-
-        const res = await fetchEmployees({
-          page,
-          page_size: pageSize,
-          search: searchTerm || undefined,
-          department: filterDepartment !== "all" ? filterDepartment : undefined,
-          ordering: sortConfig.key
-            ? `${sortConfig.direction === "desc" ? "-" : ""}${sortConfig.key}`
-            : undefined,
-        });
-
-        if (res.status === 429) {
-          toast.error("Too many requests. Please try again later.");
-          return;
-        }
-
-        if (!res.ok) {
-          toast.error("Failed to load employees...");
-          return;
-        }
-
-        const data = await res.json();
-        console.log("data:", data.results)
-        setEmployees(data.results || []);
-        setTotalCount(data.count ?? 0);
-      } catch (error) {
-        console.error("Error loading employees:", error);
-        toast.error("Failed to load employees...");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadEmployees();
-  }, [page, pageSize, searchTerm, filterDepartment, sortConfig]);
-
-  const totalPages = Math.ceil(totalCount / pageSize);
-
   // useEffect(() => {
   //   const loadEmployees = async () => {
   //     try {
-  //       const res = await fetchAllEmployees();
-  
+  //       setIsLoading(true);
+
+  //       const res = await fetchEmployees({
+  //         page,
+  //         page_size: pageSize,
+  //         search: searchTerm || undefined,
+  //         department: filterDepartment !== "all" ? filterDepartment : undefined,
+  //         ordering: sortConfig.key
+  //           ? `${sortConfig.direction === "desc" ? "-" : ""}${sortConfig.key}`
+  //           : undefined,
+  //       });
+
   //       if (res.status === 429) {
-  //         // const data = await res.json().catch(() => null);
   //         toast.error("Too many requests. Please try again later.");
   //         return;
   //       }
-  
+
   //       if (!res.ok) {
-  //         // const data = await res.json().catch(() => null);
   //         toast.error("Failed to load employees...");
   //         return;
   //       }
-  
-  //       const employees = await res.json();
-  //       console.log("employees-------------:", employees)
-  //       setEmployees(employees);
-  
+
+  //       const data = await res.json();
+  //       console.log("data:", data.results)
+  //       setEmployees(data.results || []);
+  //       setTotalCount(data.count ?? 0);
   //     } catch (error) {
   //       console.error("Error loading employees:", error);
   //       toast.error("Failed to load employees...");
+  //     } finally {
+  //       setIsLoading(false);
   //     }
   //   };
-  
+
   //   loadEmployees();
-  // }, []);
+  // }, [page, pageSize, searchTerm, filterDepartment, sortConfig]);
+
+  // const totalPages = Math.ceil(totalCount / pageSize);
+
+
+  // all data
+  useEffect(() => {
+    const loadEmployees = async () => {
+      try {
+        const res = await fetchAllEmployees();
+  
+        if (res.status === 429) {
+          // const data = await res.json().catch(() => null);
+          toast.error("Too many requests. Please try again later.");
+          return;
+        }
+  
+        if (!res.ok) {
+          // const data = await res.json().catch(() => null);
+          toast.error("Failed to load employees...");
+          return;
+        }
+  
+        const employees = await res.json();
+        console.log("employees-------------:", employees)
+        setEmployees(employees);
+  
+      } catch (error) {
+        console.error("Error loading employees:", error);
+        toast.error("Failed to load employees...");
+      }
+    };
+  
+    loadEmployees();
+  }, []);
 
   
   // useMemo hook for caching expensive filtering calculatiosn
@@ -237,12 +244,14 @@ export function EmployeeTable() {
       lastName: newEmployee.lastName,
       email: newEmployee.email || "",
       phone: newEmployee.phone || "",
-      department: newEmployee.department || "General",
+      department: newEmployee.department || "",
       position: newEmployee.position || "",
-      hireDate: newEmployee.hireDate || new Date().toISOString(),
+      hireDate: newEmployee.hireDate || null, //new Date().toISOString().split("T")[0],
       salary: newEmployee.salary || 0,
-      status: newEmployee.status || "active",
+      status: newEmployee.status || "",
     };
+
+    console.log("payload:", payload)
   
     try {
       const res = await createEmployee(payload);
@@ -291,9 +300,25 @@ export function EmployeeTable() {
         return;
       }
       const updatedEmp = await res.json();
-      setEmployees(employees.map(emp =>
-        emp.id === updatedEmp.id ? updatedEmp : emp
-      ));
+      // setEmployees(employees.map(emp =>
+      //   emp.id === updatedEmp.id ? updatedEmp : emp
+      // ));
+      setEmployees(prev => {
+        // Find the employee to update
+        const empToUpdate = prev.find(emp => emp.id === editingEmployee.id);
+        if (!empToUpdate) return prev;
+  
+        // Push previous state to undo stack once
+        setUndoStack(stack => [
+          ...stack,
+          { type: "edit", employeeId: empToUpdate.id.toString(), previousData: empToUpdate }
+        ]);
+  
+        // Return updated employees array
+        return prev.map(emp =>
+          emp.id === editingEmployee.id ? updatedEmp : emp
+        );
+      });
       setIsFormModalOpen(false);
       setEditingEmployee(null);
       setNewEmployee({});
@@ -305,27 +330,67 @@ export function EmployeeTable() {
   };
   
   const handleDelete = async (id: number) => {
-    try {
-      console.log("Deleting employee:", id);
-      const res = await deleteEmployee(id);
-      if (res.status === 429) {
-        // const data = await res.json();
-        toast.error("Too many requests. Please try again later.");
-        return;
-      }
-      if (!res.ok) {
-        // const data = await res.json().catch(() => null);
-        toast.error("Failed to delete employee...");
-        return;
-      }
-      setEmployees(prev => prev.filter(emp => emp.id !== id)); 
-      setIsDeleteModalOpen(false);
-      setDeletedEmployee(0);
-      toast.success('Employee deleted successfully!');
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to delete employee...');
-    }
+    setEmployees(prev => {
+      const index = prev.findIndex(emp => emp.id === id);
+      const empToDelete = prev[index];
+  
+      // Schedule backend delete after 5 seconds
+      const timeoutId = setTimeout(async () => {
+        try {
+          console.log("Deleting employee:", id);
+          const res = await deleteEmployee(id);
+          if (res.status === 429) {
+            // const data = await res.json();
+            toast.error("Too many requests. Please try again later.");
+            return;
+          }
+          if (!res.ok) {
+            // const data = await res.json().catch(() => null);
+            toast.error("Failed to delete employee...");
+            return;
+          }
+          // setEmployees(prev => prev.filter(emp => emp.id !== id)); 
+    
+          setIsDeleteModalOpen(false);
+          setDeletedEmployee(0);
+          toast.success('Employee deleted successfully!');
+        } catch (error) {
+          console.error(error);
+          toast.error('Failed to delete employee...');
+        }
+      }, 5000);
+  
+      // Push to undo stack with timeoutId
+      setUndoStack(stack => [
+        ...stack,
+        { type: "delete", employeeId: id.toString(), previousData: empToDelete, index, timeoutId }
+      ]);
+  
+      // Remove employee from frontend immediately
+      return prev.filter(emp => emp.id !== id);
+    });
+    // try {
+    //   console.log("Deleting employee:", id);
+    //   const res = await deleteEmployee(id);
+    //   if (res.status === 429) {
+    //     // const data = await res.json();
+    //     toast.error("Too many requests. Please try again later.");
+    //     return;
+    //   }
+    //   if (!res.ok) {
+    //     // const data = await res.json().catch(() => null);
+    //     toast.error("Failed to delete employee...");
+    //     return;
+    //   }
+    //   // setEmployees(prev => prev.filter(emp => emp.id !== id)); 
+
+    //   setIsDeleteModalOpen(false);
+    //   setDeletedEmployee(0);
+    //   toast.success('Employee deleted successfully!');
+    // } catch (error) {
+    //   console.error(error);
+    //   toast.error('Failed to delete employee...');
+    // }
   };
 
   const handleImportUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -408,6 +473,66 @@ export function EmployeeTable() {
 }
 
 
+const undo = () => {
+  setUndoStack(prevStack => {
+    if (prevStack.length === 0) return prevStack;
+
+    const lastAction = prevStack[prevStack.length - 1];
+
+    setEmployees(prevEmployees => {
+      if (lastAction.type === "delete") {
+        // Cancel pending backend deletion
+        clearTimeout(lastAction.timeoutId);
+
+        // Restore employee at original index
+        const newEmployees = [...prevEmployees];
+        newEmployees.splice(lastAction.index, 0, lastAction.previousData);
+
+        // Call backend to re-add employee using your helper
+        (async () => {
+          try {
+            const payload = lastAction.previousData;
+            const res = await createEmployee(payload);
+
+            if (res.status === 429) {
+              toast.error("Too many requests. Please try again later.");
+              return;
+            }
+
+            if (!res.ok) {
+              const data = await res.json().catch(() => null);
+              toast.error(data?.error || "Failed to add employee...");
+              return;
+            }
+
+            const createdEmployee = await res.json();
+            console.log("Re-added employee:", createdEmployee);
+          } catch (err) {
+            console.error("Failed to re-add employee in backend", err);
+          }
+        })();
+
+        return newEmployees;
+      } else if (lastAction.type === "edit") {
+        return prevEmployees.map(emp =>
+          emp.id.toString() === lastAction.employeeId
+            ? lastAction.previousData
+            : emp
+        );
+      }
+      return prevEmployees;
+    });
+
+    // Remove last action from stack
+    return prevStack.slice(0, -1);
+  });
+};
+
+
+
+
+
+
   const formData = editingEmployee || newEmployee;
   return (
     <div className="space-y-4">
@@ -417,6 +542,9 @@ export function EmployeeTable() {
           className="bg-blue-500 px-3 py-1 text-white rounded"
         >
           + Employee
+        </button>
+        <button onClick={undo} disabled={undoStack.length === 0}>
+          Undo
         </button>
         <input
           type="file"
@@ -605,11 +733,11 @@ export function EmployeeTable() {
         employees
       </div>
 
-      <div>
+      {/* <div>
         <button disabled={page === 1} onClick={() => setPage(page - 1)}>Prev</button>
         <span>{page} / {totalPages}</span>
         <button disabled={page === totalPages} onClick={() => setPage(page + 1)}>Next</button>
-      </div>
+      </div> */}
       {isFormModalOpen && (
        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
        <div className="relative bg-white dark:bg-zinc-900 rounded-lg p-6 w-full max-w-md">
@@ -805,13 +933,17 @@ export function EmployeeTable() {
              <input
                id="hireDate"
                type="date"
-               value={formData.hireDate?.split("T")[0] || ""}
-               onChange={(e) => {
-                 const value = e.target.value;
-                 editingEmployee
-                   ? setEditingEmployee({ ...editingEmployee, hireDate: value })
-                   : setNewEmployee({ ...newEmployee, hireDate: value });
-               }}
+               value={
+                formData.hireDate
+              }
+              onChange={(e) => {
+                const value = e.target.value; 
+                if (editingEmployee) {
+                  setEditingEmployee({ ...editingEmployee, hireDate: value });
+                } else {
+                  setNewEmployee({ ...newEmployee, hireDate: value });
+                }
+              }}
               className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-black placeholder-zinc-500 focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
              />
            </div>

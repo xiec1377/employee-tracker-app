@@ -38,7 +38,10 @@ class Employee(models.Model):
         max_length=100, verbose_name="Position", help_text="Job title/position"
     )
     hire_date = models.DateField(
-        verbose_name="Hire Date", help_text="Date when employee was hired"
+        verbose_name="Hire Date",
+        help_text="Date when employee was hired",
+        null=True,
+        blank=True,
     )
     salary = models.DecimalField(
         max_digits=10,

@@ -87,11 +87,6 @@ class EmployeeService:
                     salary = float(employee.salary.to_decimal())
                 else:
                     salary = float(employee.salary)
-            hire_date = (
-                employee.hire_date.isoformat()
-                if employee.hire_date is not None
-                else None
-            )
             employee_list.append(
                 {
                     "id": employee.id,
@@ -101,7 +96,7 @@ class EmployeeService:
                     "phone": employee.phone,
                     "department": employee.department,
                     "position": employee.position,
-                    "hireDate": hire_date,
+                    # "hire_date": employee.hire_date.isoformat(),
                     "salary": salary,
                     "status": employee.status,
                 }

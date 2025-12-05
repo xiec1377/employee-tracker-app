@@ -12,7 +12,12 @@ class EmployeeSerializer(serializers.ModelSerializer):
     lastName = serializers.CharField(
         source="last_name", max_length=100, write_only=False
     )
-    hireDate = serializers.DateField(source="hire_date", write_only=False)
+    hireDate = serializers.DateField(
+        source="hire_date",
+        write_only=False,
+        required=False,
+        allow_null=True,
+    )
     createdAt = serializers.DateTimeField(source="created_at", read_only=True)
     updatedAt = serializers.DateTimeField(source="updated_at", read_only=True)
 
@@ -33,10 +38,11 @@ class EmployeeSerializer(serializers.ModelSerializer):
             "updatedAt",
         ]
         extra_kwargs = {
-            "email": {"required": False, "allow_null": True, "allow_blank": True},
+            # "email": {"required": False, "allow_null": True, "allow_blank": True},
             "phone": {"required": False, "allow_null": True, "allow_blank": True},
+            "hireDate": {"required": False, "allow_null": True, "allow_blank": True},
             "salary": {"required": False, "allow_null": True},
-            "status": {"required": False},
+            # "status": {"required": False},
         }
 
     def validate_email(self, value):

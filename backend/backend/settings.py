@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from pymongo import MongoClient
 
 # from django.utils.timezone import UTC
 
@@ -106,15 +107,25 @@ import os
 #     }
 # }
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "djongo",  # "django_mongodb_backend",
+#         "NAME": "employee-tracker-app-db",
+#         "CLIENT": {
+#             "host": "mongodb://localhost:27017/",
+#         },
+#     }
+# }
+
 DATABASES = {
     "default": {
-        "ENGINE": "djongo",  # "django_mongodb_backend",
-        "NAME": "employee-tracker-app-db",
-        "CLIENT": {
-            "host": "mongodb://localhost:27017/",
-        },
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+MONGO_CLIENT = MongoClient("mongodb://localhost:27017/")
+MONGO_DB = MONGO_CLIENT["employee-tracker-app-db"]
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
