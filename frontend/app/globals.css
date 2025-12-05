@@ -24,3 +24,13 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) !important; 
+}
+
+button {
+  cursor: pointer; 
+  transition: background-color 0.2s; 
+}

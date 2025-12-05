@@ -5,6 +5,8 @@ import type { Employee } from '@/types/employee';
 import { fetchEmployees, fetchAllEmployees, createEmployee, deleteEmployee, updateEmployee, uploadExcel, downloadExcel} from '@/lib/api/employees';
 import toast from 'react-hot-toast';
 import { formatPhone, formatPhoneInput } from '@/utils/formatPhone';
+import { isValidEmail } from '@/utils/emailValidator';
+import { AlertCircle, X } from "@deemlol/next-icons";
 
 
 const mockEmployees: Employee[] = [
@@ -66,6 +68,9 @@ export function EmployeeTable() {
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+
+  const [errors, setErrors] = useState<Partial<Record<keyof Employee, string>>>({});
+
 
 
   useEffect(() => {
@@ -225,6 +230,7 @@ export function EmployeeTable() {
   };
 
   const handleAddEmployee = async () => {
+    if (!validateFields()) return; 
     console.log("ADDING NEW EMPLOYEE...");
   
     if (!newEmployee.firstName || !newEmployee.lastName) return;
@@ -271,6 +277,7 @@ export function EmployeeTable() {
   const handleUpdateEmployee = async () => {
     if (!editingEmployee) return;
     if (!editingEmployee.firstName || !editingEmployee.lastName) return;
+    if (!validateFields()) return; 
   
     try {
       const res = await updateEmployee(editingEmployee.id, editingEmployee);
@@ -382,12 +389,33 @@ export function EmployeeTable() {
     }
   };
 
+
+  function validateFields(): boolean {
+  const newErrors: typeof errors = {};
+
+  if (!formData.firstName?.trim()) newErrors.firstName = "First name is required";
+  if (!formData.lastName?.trim()) newErrors.lastName = "Last name is required";
+  if (!formData.email?.trim()) newErrors.email = "Email is required";
+  if (!formData.department?.trim()) newErrors.department = "Department is required";
+  if (!formData.status) newErrors.status = "Status is required";
+  // if (!formData.position?.trim()) newErrors.position = "Position is required";
+  // if (!formData.hireDate?.trim()) newErrors.hireDate = "Hire date is required";
+  // if (!formData.salary) newErrors.salary = "Salary is required";
+
+  // Email format
+  if (formData.email && !isValidEmail(formData.email)) newErrors.email = "Invalid email";
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+}
+
+
   const formData = editingEmployee || newEmployee;
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <button
-          onClick={() => {setIsFormModalOpen(true); setEditingEmployee(null); setNewEmployee({});}}
+          onClick={() => {setIsFormModalOpen(true); setEditingEmployee(null); setNewEmployee({});  setErrors({});}}
           className="bg-blue-500 px-3 py-1 text-white rounded"
         >
           Add
@@ -565,6 +593,7 @@ export function EmployeeTable() {
                       onClick={() => {
                         setEditingEmployee(employee);
                         setIsFormModalOpen(true);
+                        setErrors({});
                       }}
                     >
                       Edit
@@ -598,7 +627,7 @@ export function EmployeeTable() {
            className="absolute top-3 right-3 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
            aria-label="Close"
          >
-           ✕
+          <X size={24} color="#FFFFFF" />
          </button>
          <h2 className="text-xl font-bold mb-4">
            {editingEmployee ? "Edit Employee" : "Add New Employee"}
@@ -619,8 +648,16 @@ export function EmployeeTable() {
                      ? setEditingEmployee({ ...editingEmployee, firstName: value })
                      : setNewEmployee({ ...newEmployee, firstName: value });
                  }}
-                 className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-black placeholder-zinc-500 focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
-                 />
+                 className={`w-full rounded-lg border px-4 py-2 text-sm text-black placeholder-zinc-500
+                  focus:outline-none focus:ring-2 focus:ring-black
+                  dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500
+                  ${errors.firstName ? "border-red-500" : "border-zinc-700 dark:border-zinc-700 border-zinc-300 bg-white"}`}/>
+                 {errors.firstName && (
+                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                    <AlertCircle size={14} color="red" />
+                    {errors.firstName}
+                  </p>
+                )}
              </div>
      
              <div className="flex flex-col gap-1 flex-1">
@@ -637,29 +674,46 @@ export function EmployeeTable() {
                      ? setEditingEmployee({ ...editingEmployee, lastName: value })
                      : setNewEmployee({ ...newEmployee, lastName: value });
                  }}
-                 className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-black placeholder-zinc-500 focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
-               />
+                 className={`w-full rounded-lg border px-4 py-2 text-sm text-black placeholder-zinc-500
+                  focus:outline-none focus:ring-2 focus:ring-black
+                  dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500
+                  ${errors.lastName ? "border-red-500" : "border-zinc-700 dark:border-zinc-700 border-zinc-300 bg-white"}`}/>
+                {errors.lastName && (
+                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                   <AlertCircle size={14} color="red" />
+                    {errors.lastName}
+                  </p>
+                )}
              </div>
            </div>
      
            {/* Email */}
-           <div className="flex flex-col gap-1">
-             <label htmlFor="email" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-               Email
-             </label>
-             <input
-               id="email"
-               placeholder="Email"
-               value={formData.email || ""}
-               onChange={(e) => {
-                 const value = e.target.value;
-                 editingEmployee
-                   ? setEditingEmployee({ ...editingEmployee, email: value })
-                   : setNewEmployee({ ...newEmployee, email: value });
-               }}
-               className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-black placeholder-zinc-500 focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
-               />
-           </div>
+           <div className="flex flex-col gap-1 flex-1">
+            <label htmlFor="email" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Email
+            </label>
+            <input
+              id="email"
+              placeholder="Email"
+              value={formData.email || ""}
+              onChange={(e) => {
+                const value = e.target.value;
+                editingEmployee
+                  ? setEditingEmployee({ ...editingEmployee, email: value })
+                  : setNewEmployee({ ...newEmployee, email: value });
+              }}
+              className={`w-full rounded-lg border px-4 py-2 text-sm text-black placeholder-zinc-500
+                focus:outline-none focus:ring-2 focus:ring-black
+                dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500
+                ${errors.email ? "border-red-500" : "border-zinc-700 dark:border-zinc-700 border-zinc-300 bg-white"}`}/>
+            {errors.email && (
+              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                <AlertCircle size={14} color="red" />
+                {errors.email}
+              </p>
+            )}
+          </div>
+
      
            {/* Phone */}
            <div className="flex flex-col gap-1">
@@ -687,18 +741,42 @@ export function EmployeeTable() {
              <label htmlFor="department" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                Department
              </label>
-             <input
-               id="department"
-               placeholder="Department"
-               value={formData.department || ""}
-               onChange={(e) => {
-                 const value = e.target.value;
-                 editingEmployee
-                   ? setEditingEmployee({ ...editingEmployee, department: value })
-                   : setNewEmployee({ ...newEmployee, department: value });
-               }}
-               className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-black placeholder-zinc-500 focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
-             />
+             <select
+                id="department"
+                value={formData.department || "general"}
+                onChange={(e) => {
+                  const value = e.target.value as Employee["department"];
+                  editingEmployee
+                    ? setEditingEmployee({ ...editingEmployee, department: value })
+                    : setNewEmployee({ ...newEmployee, department: value });
+                }}
+                className={`w-full rounded-lg border px-4 py-2 text-sm text-black placeholder-zinc-500
+                  focus:outline-none focus:ring-2 focus:ring-black
+                  dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500
+                  ${errors.department ? "border-red-500" : "border-zinc-700 dark:border-zinc-700 border-zinc-300 bg-white"}`}
+              >
+                <option value="">Select</option>
+                <option value="accounting">Accounting</option>
+                <option value="administration">Administration</option>
+                <option value="customer_support">Customer Support</option>
+                <option value="design">Design</option>
+                <option value="engineering">Engineering</option>
+                <option value="finance">Finance</option>
+                <option value="hr">Human Resources</option>
+                <option value="it">Information Technology</option>
+                <option value="legal">Legal</option>
+                <option value="marketing">Marketing</option>
+                <option value="operations">Operations</option>
+                <option value="sales">Sales</option>
+                <option value="security">Security</option>
+              </select>
+              {errors.department && (
+                <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                  <AlertCircle size={14} color="red" />
+                  {errors.department}
+                </p>
+              )}
+             
            </div>
      
            {/* Position */}
@@ -766,19 +844,28 @@ export function EmployeeTable() {
              </label>
              <select
                 id="status"
-                value={formData.status || "active"}
+                value={formData.status || ""}
                 onChange={(e) => {
                   const value = e.target.value as Employee["status"];
                   editingEmployee
                     ? setEditingEmployee({ ...editingEmployee, status: value })
                     : setNewEmployee({ ...newEmployee, status: value });
                 }}
-                className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-black placeholder-zinc-500 focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
-              >
+                className={`w-full rounded-lg border px-4 py-2 text-sm text-black placeholder-zinc-500
+                  focus:outline-none focus:ring-2 focus:ring-black
+                  dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500
+                  ${errors.status ? "border-red-500" : "border-zinc-700 dark:border-zinc-700 border-zinc-300 bg-white"}`}>
+                <option value="">Select</option>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
                 <option value="on_leave">On Leave</option>
               </select>
+              {errors.status && (
+              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                <AlertCircle size={14} color="red" />
+                {errors.status}
+              </p>
+            )}
            </div>
          </div>
      
