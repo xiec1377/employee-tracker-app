@@ -20,18 +20,8 @@ from .models import Employee
 
 @api_view(["GET"])
 @throttle_classes([GetEmployeesThrottle, AnonRateThrottle])
-# def get_all_employees(request):
-#     print("employees")
-#     try:
-#         employees = EmployeeService.get_employees()
-#         print("employees:", employees)
-#         return Response(employees, status=status.HTTP_200_OK)
-#     except ValueError as e:
-#         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
 def get_all_employees(request):
-    print("getting all employees----")
+    # print("getting all employees----")
     try:
         # employees = EmployeeService.get_employees()  # QuerySet
         employees = Employee.objects.all()
@@ -64,7 +54,7 @@ def update_employee(request, id):
     try:
         updated_employee = EmployeeService.update_employee(id, request.data)
         serializer = EmployeeSerializer(updated_employee)
-        print("serializer.data:", serializer.data)
+        # print("serializer.data:", serializer.data)
 
         return Response(
             {
@@ -85,7 +75,7 @@ def update_employee(request, id):
 @api_view(["DELETE"])
 @throttle_classes([DeleteEmployeeThrottle, AnonRateThrottle])
 def delete_employee(request, id):
-    print(f"delete employee {id}")
+    # print(f"delete employee {id}")
     try:
         EmployeeService.delete_employee(id)
         return Response(

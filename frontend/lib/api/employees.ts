@@ -2,6 +2,39 @@ import type { Employee } from '@/types/employee';
 
 const API_BASE_URL = 'http://localhost:8000/api'; // process.env.NEXT_PUBLIC_API_URL || ;
 
+// export async function fetchEmployees(params: {
+//   page: number;
+//   page_size: number;
+//   search?: string;
+//   department?: string;
+//   ordering?: string;
+// }) {
+//   try {
+//     const query = new URLSearchParams();
+//     console.log('page:', String(params.page));
+//     console.log('page size;', String(params.page_size));
+
+//     query.set('page', String(params.page));
+//     query.set('page_size', String(params.page_size));
+
+//     if (params.search) query.set('search', params.search);
+//     if (params.department) query.set('department', params.department);
+//     if (params.ordering) query.set('ordering', params.ordering);
+
+//     const res = await fetch(`${API_BASE_URL}/employees/all?${query.toString()}`, {
+//       method: 'GET',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//     });
+//     console.log("Res:", res.json())
+//     return res;
+//   } catch (error) {
+//     console.error('Error fetching employees:', error);
+//     throw error;
+//   }
+// }
+
 export async function fetchEmployees(params: {
   page: number;
   page_size: number;
@@ -21,13 +54,15 @@ export async function fetchEmployees(params: {
     if (params.department) query.set('department', params.department);
     if (params.ordering) query.set('ordering', params.ordering);
 
-    const res = await fetch(`${API_BASE_URL}/employees/all?${query.toString()}`, {
+    const res = await fetch(`${API_BASE_URL}/employees/all/`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
+      // caching the response for 60 seconds
+      next: { revalidate: 60 },
     });
-
+    // console.log("Res:", res.json())
     return res;
   } catch (error) {
     console.error('Error fetching employees:', error);

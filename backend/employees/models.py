@@ -75,17 +75,3 @@ class Employee(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
-
-    @property
-    def full_name(self):
-        """Return the full name of the employee."""
-        return f"{self.first_name} {self.last_name}"
-
-    def get_status_display_class(self):
-        """Return CSS class for status badge."""
-        status_classes = {
-            self.Status.ACTIVE: "bg-green-100 text-green-800",
-            self.Status.INACTIVE: "bg-gray-100 text-gray-800",
-            self.Status.ON_LEAVE: "bg-yellow-100 text-yellow-800",
-        }
-        return status_classes.get(self.status, "bg-gray-100 text-gray-800")
