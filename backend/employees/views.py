@@ -1,14 +1,23 @@
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.decorators import api_view, parser_classes
+from rest_framework.decorators import api_view, parser_classes, throttle_classes
 from rest_framework.parsers import MultiPartParser
 from .services.employee_service import EmployeeService
 from .serializers import EmployeeSerializer
 from django.http import HttpResponse
+from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
+from .throttles import (
+    GetEmployeesThrottle,
+    CreateEmployeeThrottle,
+    UpdateEmployeeThrottle,
+    DeleteEmployeeThrottle,
+    ImportEmployeesThrottle,
+    ExportEmployeesThrottle,
+)
 
 
 @api_view(["GET"])
+@throttle_classes([GetEmployeesThrottle, AnonRateThrottle])
 def get_all_employees(request):
     print("employees")
     try:
@@ -20,6 +29,7 @@ def get_all_employees(request):
 
 
 @api_view(["POST"])
+@throttle_classes([CreateEmployeeThrottle, AnonRateThrottle])
 def create_employee(request):
     print("employee", request.data)
     try:
@@ -31,6 +41,7 @@ def create_employee(request):
 
 
 @api_view(["PATCH"])
+@throttle_classes([UpdateEmployeeThrottle, AnonRateThrottle])
 def update_employee(request, id):
     print(f"Updating employee {id}")
     try:
@@ -54,6 +65,7 @@ def update_employee(request, id):
 
 
 @api_view(["DELETE"])
+@throttle_classes([DeleteEmployeeThrottle, AnonRateThrottle])
 def delete_employee(request, id):
     print(f"delete employee {id}")
     try:
@@ -70,6 +82,7 @@ def delete_employee(request, id):
 
 @api_view(["POST"])
 @parser_classes([MultiPartParser])
+@throttle_classes([ImportEmployeesThrottle, AnonRateThrottle])
 def import_employees(request):
     try:
         excel_file = request.FILES["file"]
@@ -80,6 +93,7 @@ def import_employees(request):
 
 
 @api_view(["GET"])
+@throttle_classes([ExportEmployeesThrottle, AnonRateThrottle])
 def export_employees(request):
     response: HttpResponse = EmployeeService.export_to_excel()
     return response

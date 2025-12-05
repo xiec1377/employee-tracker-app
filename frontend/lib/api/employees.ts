@@ -2,10 +2,10 @@ import type { Employee } from '@/types/employee';
 
 const API_BASE_URL = 'http://localhost:8000/api'; // process.env.NEXT_PUBLIC_API_URL || ;
 
-export async function fetchAllEmployees(): Promise<Employee[]> {
+export async function fetchAllEmployees(): Promise<Response> {
   console.log("fetching all employees...")
   try {
-    const response = await fetch(`${API_BASE_URL}/employees/all/`, {
+    const res = await fetch(`${API_BASE_URL}/employees/all/`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -14,41 +14,43 @@ export async function fetchAllEmployees(): Promise<Employee[]> {
       next: { revalidate: 60 },
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch employees: ${response.statusText}`);
-    }
+    // if (!response.ok) {
+    //   throw new Error(`Failed to fetch employees: ${response.statusText}`);
+    // }
 
-    return await response.json();
+    // return await response.json();
+    return res
   } catch (error) {
     console.error('Error fetching employees:', error);
     throw error;
   }
 }
 
-export async function fetchEmployeeById(id: number): Promise<Employee> {
+export async function fetchEmployeeById(id: number): Promise<Response> {
   try {
-    const response = await fetch(`${API_BASE_URL}/employees/${id}/`, {
+    const res = await fetch(`${API_BASE_URL}/employees/${id}/`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch employee: ${response.statusText}`);
-    }
+    // if (!response.ok) {
+    //   throw new Error(`Failed to fetch employee: ${response.statusText}`);
+    // }
 
-    return await response.json();
+    // return await response.json();
+    return res
   } catch (error) {
     console.error(`Error fetching employee ${id}:`, error);
     throw error;
   }
 }
 
-export async function createEmployee(employeeData: Omit<Employee, 'id'>): Promise<Employee> {
+export async function createEmployee(employeeData: Omit<Employee, 'id'>): Promise<Response> {
   console.log("creating employee... with data", employeeData)
   try {
-    const response = await fetch(`${API_BASE_URL}/employees/`, {
+    const res = await fetch(`${API_BASE_URL}/employees/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -56,20 +58,21 @@ export async function createEmployee(employeeData: Omit<Employee, 'id'>): Promis
       body: JSON.stringify(employeeData),
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to create employee: ${response.statusText}`);
-    }
+    // if (!response.ok) {
+    //   throw new Error(`Failed to create employee: ${response.statusText}`);
+    // }
 
-    return await response.json();
+    // return await response.json();
+    return res
   } catch (error) {
     console.error('Error creating employee:', error);
     throw error;
   }
 }
 
-export async function updateEmployee(id: number, employeeData: Partial<Employee>): Promise<Employee> {
+export async function updateEmployee(id: number, employeeData: Partial<Employee>): Promise<Response> {
   try {
-    const response = await fetch(`${API_BASE_URL}/employees/${id}/edit/`, {
+    const res = await fetch(`${API_BASE_URL}/employees/${id}/edit/`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -77,26 +80,29 @@ export async function updateEmployee(id: number, employeeData: Partial<Employee>
       body: JSON.stringify(employeeData),
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to update employee: ${response.statusText}`);
-    }
+    // if (!response.ok) {
+    //   throw new Error(`Failed to update employee: ${response.statusText}`);
+    // }
 
-    return await response.json();
+    // return await response.json();
+
+    return res
   } catch (error) {
     console.error(`Error updating employee ${id}:`, error);
     throw error;
   }
 }
 
-export async function deleteEmployee(id: number): Promise<void> {
+export async function deleteEmployee(id: number): Promise<Response> {
   try {
-    const response = await fetch(`${API_BASE_URL}/employees/${id}/`, {
+    const res = await fetch(`${API_BASE_URL}/employees/${id}/`, {
       method: 'DELETE',
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to delete employee: ${response.statusText}`);
-    }
+    // if (!response.ok) {
+    //   throw new Error(`Failed to delete employee: ${response.statusText}`);
+    // }
+    return res
   } catch (error) {
     console.error(`Error deleting employee ${id}:`, error);
     throw error;
@@ -111,7 +117,8 @@ export async function uploadExcel(file: File) {
     body: formData,
   });
   console.log("res:", res)
-  return res.json();
+  return res
+  // return res.json();
 }
 
 
@@ -119,17 +126,8 @@ export async function downloadExcel() {
   const res = await fetch(`${API_BASE_URL}/employees/export/`, {
     method: "GET",
   });
-  console.log("res:", res)
-  const blob = await res.blob();
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "employees.xlsx";
-  document.body.appendChild(a);
-  a.click();
-  a.remove(); 
-  window.URL.revokeObjectURL(url);
-  return true; 
+  // console.log("res:", res)
+  return res
 }
 
 

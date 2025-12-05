@@ -61,14 +61,35 @@ export function EmployeeTable() {
   const [deletedEmployee, setDeletedEmployee] = useState(0);
 
 
-
   useEffect(() => {
-    (async () => {
-      const data = await fetchAllEmployees();
-      setEmployees(data);
-    })();
+    const loadEmployees = async () => {
+      try {
+        const res = await fetchAllEmployees();
+  
+        if (res.status === 429) {
+          // const data = await res.json().catch(() => null);
+          toast.error("Too many requests. Please try again later.");
+          return;
+        }
+  
+        if (!res.ok) {
+          // const data = await res.json().catch(() => null);
+          toast.error("Failed to load employees...");
+          return;
+        }
+  
+        const employees = await res.json();
+        setEmployees(employees);
+  
+      } catch (error) {
+        console.error("Error loading employees:", error);
+        toast.error("Failed to load employees...");
+      }
+    };
+  
+    loadEmployees();
   }, []);
-
+  
   // useMemo hook for caching expensive filtering calculatiosn
   const departments = useMemo(
     () => Array.from(new Set(employees.map((emp) => emp.department))),
@@ -156,43 +177,70 @@ export function EmployeeTable() {
   };
 
   const handleAddEmployee = async () => {
-    console.log("ADDING NEW EMPLOYEE..");
-    if (!newEmployee.firstName || !newEmployee.lastName) return;
+    console.log("ADDING NEW EMPLOYEE...");
   
-    const newEmp: Employee = {
-      id: employees.length + 1,
-      firstName: newEmployee.firstName!,
-      lastName: newEmployee.lastName!,
-      email: newEmployee.email || '',
-      phone: newEmployee.phone || '',
-      department: newEmployee.department || 'General',
-      position: newEmployee.position || '',
+    if (!newEmployee.firstName || !newEmployee.lastName) return;
+    const payload = {
+      firstName: newEmployee.firstName,
+      lastName: newEmployee.lastName,
+      email: newEmployee.email || "",
+      phone: newEmployee.phone || "",
+      department: newEmployee.department || "General",
+      position: newEmployee.position || "",
       hireDate: newEmployee.hireDate || new Date().toISOString(),
       salary: newEmployee.salary || 0,
-      status: newEmployee.status || 'active',
+      status: newEmployee.status || "active",
     };
   
     try {
-      const updatedEmp = await createEmployee(newEmp);
-      setEmployees([...employees, updatedEmp]);
+      const res = await createEmployee(payload);
+  
+      if (res.status === 429) {
+        // const data = await res.json().catch(() => null);
+        toast.error("Too many requests. Please try again later.");
+        return;
+      }
+  
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || "Failed to add employee...");
+        return;
+      }
+  
+      const createdEmployee = await res.json();
+  
+      setEmployees([...employees, createdEmployee]);
       setIsFormModalOpen(false);
       setNewEmployee({});
-      toast.success('Employee added successfully!');
+      toast.success("Employee added successfully!");
     } catch (error) {
       console.error(error);
-      toast.error('Failed to add employee...');
+      toast.error("Failed to add employee...");
     }
   };
+  
   
   const handleUpdateEmployee = async () => {
     if (!editingEmployee) return;
     if (!editingEmployee.firstName || !editingEmployee.lastName) return;
   
     try {
-      const updatedEmp = await updateEmployee(editingEmployee.id, editingEmployee);
-      setEmployees(
-        employees.map(emp => (emp.id === updatedEmp.id ? updatedEmp : emp))
-      );
+      const res = await updateEmployee(editingEmployee.id, editingEmployee);
+      if (res.status === 429) {
+        // const data = await res.json().catch(() => null);
+        toast.error("Too many requests. Please try again later.");
+        return;
+      }
+
+      if (!res.ok) {
+        // const data = await res.json().catch(() => null);
+        toast.error("Failed to update employee...");
+        return;
+      }
+      const updatedEmp = await res.json();
+      setEmployees(employees.map(emp =>
+        emp.id === updatedEmp.id ? updatedEmp : emp
+      ));
       setIsFormModalOpen(false);
       setEditingEmployee(null);
       setNewEmployee({});
@@ -206,8 +254,18 @@ export function EmployeeTable() {
   const handleDelete = async (id: number) => {
     try {
       console.log("Deleting employee:", id);
-      await deleteEmployee(id);
-      setEmployees(prev => prev.filter(emp => emp.id !== id)); // update UI
+      const res = await deleteEmployee(id);
+      if (res.status === 429) {
+        // const data = await res.json();
+        toast.error("Too many requests. Please try again later.");
+        return;
+      }
+      if (!res.ok) {
+        // const data = await res.json().catch(() => null);
+        toast.error("Failed to delete employee...");
+        return;
+      }
+      setEmployees(prev => prev.filter(emp => emp.id !== id)); 
       setIsDeleteModalOpen(false);
       setDeletedEmployee(0);
       toast.success('Employee deleted successfully!');
@@ -221,14 +279,25 @@ export function EmployeeTable() {
     const file = e.target.files?.[0];
     if (!file) return;
   
-    // const formData = new FormData();
-    // formData.append("file", file);
-  
     try {
-      await uploadExcel(file);
+      await uploadExcel(file)
+      const res = await uploadExcel(file);
+      // console.log("res.json:", res.json())
+      if (res.status === 429) {
+        // const data = await res.json();
+        toast.error("Too many requests. Please try again later.");
+        return;
+      }
+  
+      if (!res.ok) {
+        toast.error("Failed to import Excel file...");
+        return;
+      }
       toast.success("Excel file imported successfully!");
-      // Optionally re-fetch employees
-      // await fetchAllEmployees();
+
+      const result = await fetchAllEmployees();
+      console.log("result:", result)
+      setEmployees(result);
   
     } catch (error) {
       console.error(error);
@@ -238,7 +307,25 @@ export function EmployeeTable() {
 
   const handleExportFile = async () => {
     try {
-      await downloadExcel();
+      const res = await downloadExcel();
+      if (res.status === 429) {
+        // const data = await res.json();
+        toast.error("Too many requests. Please try again later.");
+        return;
+      }
+
+      if (!res.ok) {
+        toast.error("Failed to export Excel file...");
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "employees.xlsx";
+      a.click();
+      a.remove(); 
       toast.success("Excel file exported successfully!");
   
     } catch (error) {
