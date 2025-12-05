@@ -162,10 +162,10 @@ useEffect(() => {
 
   
   // useMemo hook for caching expensive filtering calculatiosn
-  // const departments = useMemo(
-  //   () => Array.from(new Set(employees.map((emp) => emp.department))),
-  //   [employees]
-  // );
+  const departments = useMemo(
+    () => Array.from(new Set(employees.map((emp) => emp.department))),
+    [employees]
+  );
 
 
   // Filter and sort employees
@@ -283,6 +283,8 @@ useEffect(() => {
   
   
   const handleUpdateEmployee = async () => {
+    console.log("UPDATING EMPLOYE...")
+    console.log("editingEmployee", editingEmployee)
     if (!editingEmployee) return;
     if (!editingEmployee.firstName || !editingEmployee.lastName) return;
     if (!validateFields()) return; 
@@ -354,7 +356,6 @@ useEffect(() => {
             toast.error("Failed to delete employee...");
             return;
           }
-          // setEmployees(prev => prev.filter(emp => emp.id !== id)); 
     
           setIsDeleteModalOpen(false);
           setDeletedEmployee(0);
@@ -473,12 +474,12 @@ useEffect(() => {
   if (formData.email && !isValidEmail(formData.email)) newErrors.email = "Invalid email";
 
   // phone format 
-  if (formData.phone) {
-    const phoneRegex = /^\(\d{3}\)-\d{3}-\d{4}$/;
-    if (!phoneRegex.test(formData.phone)) {
-      newErrors.phone = "Phone number must be in the format (xxx)-xxx-xxxx";
-    }
-  }
+  // if (formData.phone) {
+  //   const phoneRegex = /^\(\d{3}\)-\d{3}-\d{4}$/;
+  //   if (!phoneRegex.test(formData.phone)) {
+  //     newErrors.phone = "Phone number must be in the format (xxx)-xxx-xxxx";
+  //   }
+  // }
 
   setErrors(newErrors);
   return Object.keys(newErrors).length === 0;
@@ -493,14 +494,11 @@ const undo = () => {
 
     setEmployees(prevEmployees => {
       if (lastAction.type === "delete") {
-        // Cancel pending backend deletion
         clearTimeout(lastAction.timeoutId);
 
-        // Restore employee at original index
         const newEmployees = [...prevEmployees];
         newEmployees.splice(lastAction.index, 0, lastAction.previousData);
 
-        // Call backend to re-add employee using your helper
         (async () => {
           try {
             const payload = lastAction.previousData;
@@ -598,11 +596,11 @@ const undo = () => {
             className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-black focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
           >
             <option value="all">All</option>
-            {/* {departments.map((dept) => (
+            {departments.map((dept) => (
               <option key={dept} value={dept}>
                 {dept}
               </option>
-            ))} */}
+            ))}
           </select>
         </div>
         {/* <div className="flex items-center gap-2">
