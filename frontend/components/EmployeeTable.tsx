@@ -12,44 +12,44 @@ import { formatDate } from '@/utils/formatDate';
 import { TableCell } from './table/TableCell';
 
 
-const mockEmployees: Employee[] = [
-  {
-    id: 1,
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@company.com',
-    phone: '+1 (555) 123-4567',
-    department: 'Engineering',
-    position: 'Senior Software Engineer',
-    hireDate: '2022-01-15',
-    salary: 120000,
-    status: 'active',
-  },
-  {
-    id: 2,
-    firstName: 'Jane',
-    lastName: 'Smith',
-    email: 'jane.smith@company.com',
-    phone: '+1 (555) 234-5678',
-    department: 'Marketing',
-    position: 'Marketing Manager',
-    hireDate: '2021-06-10',
-    salary: 95000,
-    status: 'active',
-  },
-  {
-    id: 3,
-    firstName: 'Mike',
-    lastName: 'Johnson',
-    email: 'mike.johnson@company.com',
-    phone: '+1 (555) 345-6789',
-    department: 'Sales',
-    position: 'Sales Representative',
-    hireDate: '2023-03-20',
-    salary: 65000,
-    status: 'active',
-  },
-];
+// const mockEmployees: Employee[] = [
+//   {
+//     id: 1,
+//     firstName: 'John',
+//     lastName: 'Doe',
+//     email: 'john.doe@company.com',
+//     phone: '+1 (555) 123-4567',
+//     department: 'Engineering',
+//     position: 'Senior Software Engineer',
+//     hireDate: '2022-01-15',
+//     salary: 120000,
+//     status: 'active',
+//   },
+//   {
+//     id: 2,
+//     firstName: 'Jane',
+//     lastName: 'Smith',
+//     email: 'jane.smith@company.com',
+//     phone: '+1 (555) 234-5678',
+//     department: 'Marketing',
+//     position: 'Marketing Manager',
+//     hireDate: '2021-06-10',
+//     salary: 95000,
+//     status: 'active',
+//   },
+//   {
+//     id: 3,
+//     firstName: 'Mike',
+//     lastName: 'Johnson',
+//     email: 'mike.johnson@company.com',
+//     phone: '+1 (555) 345-6789',
+//     department: 'Sales',
+//     position: 'Sales Representative',
+//     hireDate: '2023-03-20',
+//     salary: 65000,
+//     status: 'active',
+//   },
+// ];
 
 export function EmployeeTable() {
   // const [employees] = useState<Employee[]>(mockEmployees);
@@ -68,84 +68,85 @@ export function EmployeeTable() {
 
   // pagination
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
   const [errors, setErrors] = useState<Partial<Record<keyof Employee, string>>>({});
 
-
-
+// pagination
   useEffect(() => {
     const loadEmployees = async () => {
       try {
-        const res = await fetchAllEmployees();
-  
+        setIsLoading(true);
+
+        const res = await fetchEmployees({
+          page,
+          page_size: pageSize,
+          search: searchTerm || undefined,
+          department: filterDepartment !== "all" ? filterDepartment : undefined,
+          ordering: sortConfig.key
+            ? `${sortConfig.direction === "desc" ? "-" : ""}${sortConfig.key}`
+            : undefined,
+        });
+
         if (res.status === 429) {
-          // const data = await res.json().catch(() => null);
           toast.error("Too many requests. Please try again later.");
           return;
         }
-  
+
         if (!res.ok) {
-          // const data = await res.json().catch(() => null);
           toast.error("Failed to load employees...");
           return;
         }
-  
-        const employees = await res.json();
-        console.log("employees-------------:", employees)
-        setEmployees(employees);
-  
+
+        const data = await res.json();
+        console.log("data:", data.results)
+        setEmployees(data.results || []);
+        setTotalCount(data.count ?? 0);
       } catch (error) {
         console.error("Error loading employees:", error);
         toast.error("Failed to load employees...");
+      } finally {
+        setIsLoading(false);
       }
     };
-  
+
     loadEmployees();
-  }, []);
+  }, [page, pageSize, searchTerm, filterDepartment, sortConfig]);
+
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   // useEffect(() => {
   //   const loadEmployees = async () => {
   //     try {
-  //       setIsLoading(true);
-  
-  //       const res = await fetchEmployees({
-  //         page,
-  //         page_size: pageSize,
-  //         search: searchTerm || undefined,
-  //         department: filterDepartment !== "all" ? filterDepartment : undefined,
-  //         ordering: sortConfig.key
-  //           ? `${sortConfig.direction === "desc" ? "-" : ""}${sortConfig.key}`
-  //           : undefined,
-  //       });
+  //       const res = await fetchAllEmployees();
   
   //       if (res.status === 429) {
+  //         // const data = await res.json().catch(() => null);
   //         toast.error("Too many requests. Please try again later.");
   //         return;
   //       }
   
   //       if (!res.ok) {
+  //         // const data = await res.json().catch(() => null);
   //         toast.error("Failed to load employees...");
   //         return;
   //       }
   
-  //       const data = await res.json(); // DRF style: { count, next, previous, results }
+  //       const employees = await res.json();
+  //       console.log("employees-------------:", employees)
+  //       setEmployees(employees);
   
-  //       setEmployees(data.results || []);
-  //       setTotalCount(data.count ?? 0);
   //     } catch (error) {
   //       console.error("Error loading employees:", error);
   //       toast.error("Failed to load employees...");
-  //     } finally {
-  //       setIsLoading(false);
   //     }
   //   };
   
   //   loadEmployees();
-  // }, [page, pageSize, searchTerm, filterDepartment, sortConfig]);
-  
+  // }, []);
+
   
   // useMemo hook for caching expensive filtering calculatiosn
   const departments = useMemo(
@@ -395,7 +396,7 @@ export function EmployeeTable() {
   if (!formData.email?.trim()) newErrors.email = "Email is required";
   if (!formData.department?.trim()) newErrors.department = "Department is required";
   if (!formData.status) newErrors.status = "Status is required";
-  // if (!formData.position?.trim()) newErrors.position = "Position is required";
+  if (!formData.position?.trim()) newErrors.position = "Position is required";
   // if (!formData.hireDate?.trim()) newErrors.hireDate = "Hire date is required";
   // if (!formData.salary) newErrors.salary = "Salary is required";
 
@@ -603,6 +604,12 @@ export function EmployeeTable() {
         Showing {filteredAndSortedEmployees.length} of {employees.length}{' '}
         employees
       </div>
+
+      <div>
+        <button disabled={page === 1} onClick={() => setPage(page - 1)}>Prev</button>
+        <span>{page} / {totalPages}</span>
+        <button disabled={page === totalPages} onClick={() => setPage(page + 1)}>Next</button>
+      </div>
       {isFormModalOpen && (
        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
        <div className="relative bg-white dark:bg-zinc-900 rounded-lg p-6 w-full max-w-md">
@@ -620,7 +627,7 @@ export function EmployeeTable() {
            <div className="flex flex-row gap-3 w-full">
              <div className="flex flex-col gap-1 flex-1">
                <label htmlFor="firstName" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                 First Name
+                 First Name <span className="text-red-500">*</span>
                </label>
                <input
                  id="firstName"
@@ -646,7 +653,7 @@ export function EmployeeTable() {
      
              <div className="flex flex-col gap-1 flex-1">
                <label htmlFor="lastName" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                 Last Name
+                 Last Name <span className="text-red-500">*</span>
                </label>
                <input
                  id="lastName"
@@ -674,7 +681,7 @@ export function EmployeeTable() {
            {/* Email */}
            <div className="flex flex-col gap-1 flex-1">
             <label htmlFor="email" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Email
+              Email <span className="text-red-500">*</span>
             </label>
             <input
               id="email"
@@ -723,7 +730,7 @@ export function EmployeeTable() {
            {/* Department */}
            <div className="flex flex-col gap-1">
              <label htmlFor="department" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-               Department
+               Department <span className="text-red-500">*</span>
              </label>
              <select
                 id="department"
@@ -766,8 +773,8 @@ export function EmployeeTable() {
            {/* Position */}
            <div className="flex flex-col gap-1">
              <label htmlFor="position" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-               Position
-             </label>
+               Position <span className="text-red-500">*</span>
+             </label> 
              <input
                id="position"
                placeholder="Position"
@@ -778,8 +785,16 @@ export function EmployeeTable() {
                    ? setEditingEmployee({ ...editingEmployee, position: value })
                    : setNewEmployee({ ...newEmployee, position: value });
                }}
-             className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-black placeholder-zinc-500 focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
-             />
+               className={`w-full rounded-lg border px-4 py-2 text-sm text-black placeholder-zinc-500
+                focus:outline-none focus:ring-2 focus:ring-black
+                dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500
+                ${errors.position ? "border-red-500" : "border-zinc-700 dark:border-zinc-700 border-zinc-300 bg-white"}`}/>
+             {errors.position && (
+              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                <AlertCircle size={14} color="red" />
+                {errors.position}
+              </p>
+            )}
            </div>
      
            {/* Hire Date */}
@@ -824,7 +839,7 @@ export function EmployeeTable() {
            {/* Status */}
            <div className="flex flex-col gap-1">
              <label htmlFor="status" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-               Status
+               Status <span className="text-red-500">*</span>
              </label>
              <select
                 id="status"

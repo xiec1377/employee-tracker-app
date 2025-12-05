@@ -1,4 +1,5 @@
 from ..models import Employee
+from django.db.models.query import QuerySet
 
 # from typing import Dict, List
 
@@ -34,11 +35,12 @@ class EmployeeRepository:
             return None
 
     @staticmethod
-    def get_all_employees() -> list[Employee]:
+    def get_all_employees() -> QuerySet[Employee]:
         """
         Returns all Employee records from the database.
         """
-        return list(Employee.objects.all())
+        # return list(Employee.objects.all())
+        return Employee.objects.all().order_by("id")
 
     @staticmethod
     def delete_employee(employee):

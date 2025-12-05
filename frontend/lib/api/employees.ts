@@ -9,20 +9,32 @@ export async function fetchEmployees(params: {
   department?: string;
   ordering?: string;
 }) {
-  const query = new URLSearchParams();
+  
 
-  query.set("page", String(params.page));
-  query.set("page_size", String(params.page_size));
+  try {
+    const query = new URLSearchParams();
+    console.log("page:", String(params.page))
+    console.log("page size;", String(params.page_size))
 
-  if (params.search) query.set("search", params.search);
-  if (params.department) query.set("department", params.department);
-  if (params.ordering) query.set("ordering", params.ordering);
+    query.set("page", String(params.page));
+    query.set("page_size", String(params.page_size));
 
-  const res = await fetch(`/api/employees/?${query.toString()}`, {
-    method: "GET",
-  });
+    if (params.search) query.set("search", params.search);
+    if (params.department) query.set("department", params.department);
+    if (params.ordering) query.set("ordering", params.ordering);
 
-  return res;
+    const res = await fetch(`${API_BASE_URL}/employees/all?${query.toString()}`, {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return res;
+  } catch (error) {
+    console.error('Error fetching employees:', error);
+    throw error;
+  }
 }
 
 export async function fetchAllEmployees(): Promise<Response> {
