@@ -7,6 +7,9 @@ import toast from 'react-hot-toast';
 import { formatPhone, formatPhoneInput } from '@/utils/formatPhone';
 import { isValidEmail } from '@/utils/emailValidator';
 import { AlertCircle, X } from "@deemlol/next-icons";
+import { formatCurrency } from '@/utils/formatCurrency';
+import { formatDate } from '@/utils/formatDate';
+import { TableCell } from './table/TableCell';
 
 
 const mockEmployees: Employee[] = [
@@ -91,6 +94,7 @@ export function EmployeeTable() {
         }
   
         const employees = await res.json();
+        console.log("employees-------------:", employees)
         setEmployees(employees);
   
       } catch (error) {
@@ -213,21 +217,14 @@ export function EmployeeTable() {
     );
   };
 
-  const formatCurrency = (amount?: number) => {
-    if (!amount) return 'N/A';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
+  // const formatDate = (dateString: string) => {
+  //   return new Date(dateString).toLocaleDateString('en-US', {
+  //     year: 'numeric',
+  //     month: 'short',
+  //     day: 'numeric',
+  //   });
+  // };
+ 
 
   const handleAddEmployee = async () => {
     if (!validateFields()) return; 
@@ -418,7 +415,7 @@ export function EmployeeTable() {
           onClick={() => {setIsFormModalOpen(true); setEditingEmployee(null); setNewEmployee({});  setErrors({});}}
           className="bg-blue-500 px-3 py-1 text-white rounded"
         >
-          Add
+          + Employee
         </button>
         <input
           type="file"
@@ -565,25 +562,12 @@ export function EmployeeTable() {
                   <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-black dark:text-zinc-50">
                     {employee.firstName} {employee.lastName}
                   </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">
-                    {employee.email}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">
-                    {employee.phone}
-                    {/* {formatPhone(employee.phone)} */}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">
-                    {employee.department}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">
-                    {employee.position}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">
-                    {formatDate(employee.hireDate)}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">
-                    {formatCurrency(employee.salary)}
-                  </td>
+                  <TableCell value={employee.email}/>
+                  <TableCell value={employee.phone} formatter={formatPhone} />
+                  <TableCell value={employee.department}/>
+                  <TableCell value={employee.position}/>
+                  <TableCell value={employee.hireDate} formatter={formatDate} />
+                  <TableCell value={employee.salary} formatter={formatCurrency} />
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">
                     {getStatusBadge(employee.status)}
                   </td>
@@ -891,7 +875,14 @@ export function EmployeeTable() {
 
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white dark:bg-zinc-900 rounded-lg p-6 w-full max-w-md">
+          <div className="relative bg-white dark:bg-zinc-900 rounded-lg p-6 w-full max-w-md">
+          <button
+           onClick={() => setIsDeleteModalOpen(false)}
+           className="absolute top-3 right-3 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+           aria-label="Close"
+         >
+          <X size={24} color="#FFFFFF" />
+         </button>
             <h2 className="text-lg font-bold mb-4">Are you sure you want to delete?</h2>
             <div className="mt-4 flex justify-end gap-2">
               <button
