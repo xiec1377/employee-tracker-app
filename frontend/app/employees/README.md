@@ -24,6 +24,7 @@ frontend/
 ### `EmployeeTable` Component
 
 A fully-featured employee table component with:
+
 - **Search functionality**: Filter employees by any field
 - **Department filtering**: Filter by specific department
 - **Sorting**: Click column headers to sort (ascending/descending)
@@ -121,7 +122,7 @@ interface Employee {
   department: string;
   position: string;
   hireDate: string; // ISO date string
-  salary?: number;  // Optional
+  salary?: number; // Optional
   status: 'active' | 'inactive' | 'on_leave';
 }
 ```
@@ -129,6 +130,7 @@ interface Employee {
 ## API Integration
 
 The `lib/api/employees.ts` file provides utility functions for:
+
 - `fetchEmployees()` - Get all employees
 - `fetchEmployeeById(id)` - Get single employee
 - `createEmployee(data)` - Create new employee
@@ -140,15 +142,18 @@ Set the `NEXT_PUBLIC_API_URL` environment variable to configure the API endpoint
 ## Customization
 
 ### Styling
+
 The component uses Tailwind CSS and follows the existing design system. Colors and spacing can be customized by modifying the Tailwind classes.
 
 ### Adding Columns
+
 1. Update the `Employee` type in `types/employee.ts`
 2. Add table header in `EmployeeTable.tsx`
 3. Add table cell with employee data
 4. Optionally add sorting functionality
 
 ### Modifying Filters
+
 Add new filter controls in the component's search/filter section and update the `filteredAndSortedEmployees` useMemo hook.
 
 ## Next Steps
@@ -159,4 +164,3 @@ Add new filter controls in the component's search/filter section and update the 
 4. Add form for creating new employees
 5. Add export functionality (CSV, PDF)
 6. Add bulk actions
-

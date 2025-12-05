@@ -8,7 +8,7 @@ export interface Employee {
   position: string;
   hireDate?: string | null;
   salary?: number;
-  status: "active" | "inactive" | "on_leave";
+  status: 'active' | 'inactive' | 'on_leave';
 }
 
-export type EmployeeFormData = Omit<Employee, "id">;
+export type EmployeeFormData = Omit<Employee, 'id'>;

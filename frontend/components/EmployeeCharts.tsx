@@ -15,15 +15,7 @@ import {
 import { employees } from '@/data/empoyeesMockData';
 import { StatPill } from './StatPill';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 export default function EmployeeCharts() {
   const departmentCounts = useMemo(() => {
@@ -54,13 +46,13 @@ export default function EmployeeCharts() {
         {
           label: 'Employees',
           data: Object.values(departmentCounts),
-          backgroundColor: "#6366f1", 
+          backgroundColor: '#6366f1',
           borderRadius: 8,
           borderSkipped: false,
         },
       ],
     }),
-    [departmentCounts]
+    [departmentCounts],
   );
 
   const barOptions = {
@@ -93,12 +85,12 @@ export default function EmployeeCharts() {
           display: false,
         },
         ticks: {
-          color: '#6b7280', 
+          color: '#6b7280',
         },
       },
       y: {
         grid: {
-          color: 'rgba(148, 163, 184, 0.2)', 
+          color: 'rgba(148, 163, 184, 0.2)',
         },
         ticks: {
           precision: 0,
@@ -113,22 +105,17 @@ export default function EmployeeCharts() {
       labels: Object.keys(statusCounts),
       datasets: [
         {
-          label: "Employee Status",
+          label: 'Employee Status',
           data: Object.values(statusCounts),
-          backgroundColor: [
-            "#3b82f6", 
-            "#6366f1", 
-            "#8b5cf6", 
-            "#a855f7", 
-          ],
-  
+          backgroundColor: ['#3b82f6', '#6366f1', '#8b5cf6', '#a855f7'],
+
           borderWidth: 2,
-          borderColor: "#020617",
+          borderColor: '#020617',
           hoverOffset: 6,
         },
       ],
     }),
-    [statusCounts]
+    [statusCounts],
   );
 
   const donutOptions = {
@@ -155,10 +142,7 @@ export default function EmployeeCharts() {
     },
   };
 
-  const totalStatus = Object.values(statusCounts).reduce(
-    (a, b) => a + b,
-    0
-  );
+  const totalStatus = Object.values(statusCounts).reduce((a, b) => a + b, 0);
 
   return (
     <div className="w-full space-y-6 rounded-2xl border border-zinc-200 bg-gradient-to-b from-white via-white to-zinc-50 p-6 shadow-sm dark:border-zinc-800 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900">
@@ -224,13 +208,8 @@ export default function EmployeeCharts() {
             <div className="flex flex-1 flex-col gap-3">
               {donutData.labels.map((label, idx) => {
                 const value = donutData.datasets[0].data[idx] as number;
-                const percent = totalStatus
-                  ? ((value / totalStatus) * 100).toFixed(1)
-                  : '0.0';
-                const color =
-                  donutData.datasets[0].backgroundColor[
-                    idx
-                  ] as string;
+                const percent = totalStatus ? ((value / totalStatus) * 100).toFixed(1) : '0.0';
+                const color = donutData.datasets[0].backgroundColor[idx] as string;
 
                 return (
                   <div
@@ -247,9 +226,7 @@ export default function EmployeeCharts() {
                       </span>
                     </div>
                     <div className="flex items-baseline gap-2">
-                      <span className="font-semibold text-zinc-900 dark:text-zinc-50">
-                        {value}
-                      </span>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-50">{value}</span>
                       <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
                         {percent}%
                       </span>
@@ -264,4 +241,3 @@ export default function EmployeeCharts() {
     </div>
   );
 }
-

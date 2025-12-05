@@ -9,22 +9,20 @@ export async function fetchEmployees(params: {
   department?: string;
   ordering?: string;
 }) {
-  
-
   try {
     const query = new URLSearchParams();
-    console.log("page:", String(params.page))
-    console.log("page size;", String(params.page_size))
+    console.log('page:', String(params.page));
+    console.log('page size;', String(params.page_size));
 
-    query.set("page", String(params.page));
-    query.set("page_size", String(params.page_size));
+    query.set('page', String(params.page));
+    query.set('page_size', String(params.page_size));
 
-    if (params.search) query.set("search", params.search);
-    if (params.department) query.set("department", params.department);
-    if (params.ordering) query.set("ordering", params.ordering);
+    if (params.search) query.set('search', params.search);
+    if (params.department) query.set('department', params.department);
+    if (params.ordering) query.set('ordering', params.ordering);
 
     const res = await fetch(`${API_BASE_URL}/employees/all?${query.toString()}`, {
-      method: "GET",
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -38,7 +36,7 @@ export async function fetchEmployees(params: {
 }
 
 export async function fetchAllEmployees(): Promise<Response> {
-  console.log("fetching all employees...")
+  console.log('fetching all employees...');
   try {
     const res = await fetch(`${API_BASE_URL}/employees/all/`, {
       method: 'GET',
@@ -54,7 +52,7 @@ export async function fetchAllEmployees(): Promise<Response> {
     // }
 
     // return await response.json();
-    return res
+    return res;
   } catch (error) {
     console.error('Error fetching employees:', error);
     throw error;
@@ -75,7 +73,7 @@ export async function fetchEmployeeById(id: number): Promise<Response> {
     // }
 
     // return await response.json();
-    return res
+    return res;
   } catch (error) {
     console.error(`Error fetching employee ${id}:`, error);
     throw error;
@@ -83,7 +81,7 @@ export async function fetchEmployeeById(id: number): Promise<Response> {
 }
 
 export async function createEmployee(employeeData: Omit<Employee, 'id'>): Promise<Response> {
-  console.log("creating employee... with data", employeeData)
+  console.log('creating employee... with data', employeeData);
   try {
     const res = await fetch(`${API_BASE_URL}/employees/`, {
       method: 'POST',
@@ -98,14 +96,17 @@ export async function createEmployee(employeeData: Omit<Employee, 'id'>): Promis
     // }
 
     // return await response.json();
-    return res
+    return res;
   } catch (error) {
     console.error('Error creating employee:', error);
     throw error;
   }
 }
 
-export async function updateEmployee(id: number, employeeData: Partial<Employee>): Promise<Response> {
+export async function updateEmployee(
+  id: number,
+  employeeData: Partial<Employee>,
+): Promise<Response> {
   try {
     const res = await fetch(`${API_BASE_URL}/employees/${id}/edit/`, {
       method: 'PATCH',
@@ -121,7 +122,7 @@ export async function updateEmployee(id: number, employeeData: Partial<Employee>
 
     // return await response.json();
 
-    return res
+    return res;
   } catch (error) {
     console.error(`Error updating employee ${id}:`, error);
     throw error;
@@ -137,7 +138,7 @@ export async function deleteEmployee(id: number): Promise<Response> {
     // if (!response.ok) {
     //   throw new Error(`Failed to delete employee: ${response.statusText}`);
     // }
-    return res
+    return res;
   } catch (error) {
     console.error(`Error deleting employee ${id}:`, error);
     throw error;
@@ -146,24 +147,20 @@ export async function deleteEmployee(id: number): Promise<Response> {
 
 export async function uploadExcel(file: File) {
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append('file', file);
   const res = await fetch(`${API_BASE_URL}/employees/import/`, {
-    method: "POST",
+    method: 'POST',
     body: formData,
   });
-  console.log("res import:", res)
-  return res
+  console.log('res import:', res);
+  return res;
   // return res.json();
 }
 
-
 export async function downloadExcel() {
   const res = await fetch(`${API_BASE_URL}/employees/export/`, {
-    method: "GET",
+    method: 'GET',
   });
   // console.log("res:", res)
-  return res
+  return res;
 }
-
-
-
