@@ -64,6 +64,7 @@ def update_employee(request, id):
     try:
         updated_employee = EmployeeService.update_employee(id, request.data)
         serializer = EmployeeSerializer(updated_employee)
+        print("serializer.data:", serializer.data)
 
         return Response(
             {

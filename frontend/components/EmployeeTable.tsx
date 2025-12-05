@@ -121,6 +121,11 @@ useEffect(() => {
 }, [page, pageSize, searchTerm, filterDepartment, sortConfig]);
 
 
+useEffect(() => {
+  console.log("employees, ", employees)
+}, [employees])
+
+
   const totalPages = Math.ceil(totalCount / pageSize);
 
 
@@ -157,22 +162,11 @@ useEffect(() => {
 
   
   // useMemo hook for caching expensive filtering calculatiosn
-  const departments = useMemo(
-    () => Array.from(new Set(employees.map((emp) => emp.department))),
-    [employees]
-  );
-
   // const departments = useMemo(
-  //   () =>
-  //     Array.from(
-  //       new Set(
-  //         employees.map(
-  //           (emp) => emp.department.charAt(0).toUpperCase() + emp.department.slice(1)
-  //         )
-  //       )
-  //     ),
+  //   () => Array.from(new Set(employees.map((emp) => emp.department))),
   //   [employees]
   // );
+
 
   // Filter and sort employees
   const filteredAndSortedEmployees = useMemo(() => {
@@ -235,7 +229,7 @@ useEffect(() => {
       <span
         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[status]}`}
       >
-        {status.replace('_', ' ').toUpperCase()}
+        {status && status.replace('_', ' ').toUpperCase()}
       </span>
     );
   };
@@ -306,26 +300,30 @@ useEffect(() => {
         toast.error("Failed to update employee...");
         return;
       }
-      const updatedEmp = await res.json();
-      // setEmployees(employees.map(emp =>
-      //   emp.id === updatedEmp.id ? updatedEmp : emp
-      // ));
-      setEmployees(prev => {
-        // Find the employee to update
-        const empToUpdate = prev.find(emp => emp.id === editingEmployee.id);
-        if (!empToUpdate) return prev;
+      const updatedEmpRes = await res.json();
+      const updatedEmp = updatedEmpRes.data;
+
+      setEmployees(prevEmployees =>
+        prevEmployees.map(emp =>
+          emp.id === updatedEmp.id ? updatedEmp : emp
+        )
+      );
+      // setEmployees(prev => {
+      //   // Find the employee to update
+      //   const empToUpdate = prev.find(emp => emp.id === editingEmployee.id);
+      //   if (!empToUpdate) return prev;
   
-        // Push previous state to undo stack once
-        setUndoStack(stack => [
-          ...stack,
-          { type: "edit", employeeId: empToUpdate.id.toString(), previousData: empToUpdate }
-        ]);
+      //   // Push previous state to undo stack once
+      //   setUndoStack(stack => [
+      //     ...stack,
+      //     { type: "edit", employeeId: empToUpdate.id.toString(), previousData: empToUpdate }
+      //   ]);
   
-        // Return updated employees array
-        return prev.map(emp =>
-          emp.id === editingEmployee.id ? updatedEmp : emp
-        );
-      });
+      //   // Return updated employees array
+      //   return prev.map(emp =>
+      //     emp.id === editingEmployee.id ? updatedEmp : emp
+      //   );
+      // });
       setIsFormModalOpen(false);
       setEditingEmployee(null);
       setNewEmployee({});
@@ -367,13 +365,11 @@ useEffect(() => {
         }
       }, 5000);
   
-      // Push to undo stack with timeoutId
       setUndoStack(stack => [
         ...stack,
         { type: "delete", employeeId: id.toString(), previousData: empToDelete, index, timeoutId }
       ]);
   
-      // Remove employee from frontend immediately
       return prev.filter(emp => emp.id !== id);
     });
     // try {
@@ -602,11 +598,11 @@ const undo = () => {
             className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-black focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
           >
             <option value="all">All</option>
-            {departments.map((dept) => (
+            {/* {departments.map((dept) => (
               <option key={dept} value={dept}>
                 {dept}
               </option>
-            ))}
+            ))} */}
           </select>
         </div>
         {/* <div className="flex items-center gap-2">
