@@ -2,11 +2,11 @@ export interface Employee {
   id: number;
   firstName: string;
   lastName: string;
-  email?: string;
+  email: string;
   phone?: string;
   department: string;
   position: string;
-  hireDate: string;
+  hireDate?: string | null;
   salary?: number;
   status: "active" | "inactive" | "on_leave";
 }

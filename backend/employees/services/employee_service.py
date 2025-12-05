@@ -6,6 +6,7 @@ import openpyxl
 from django.db import transaction
 from openpyxl import Workbook
 from django.http import HttpResponse
+import datetime
 
 
 class EmployeeService:
@@ -60,12 +61,10 @@ class EmployeeService:
         if not employee:
             raise ValueError(f"Employee with id {id} does not exist.")
 
-        # Optional: check for email conflict if email is being updated
         if "email" in model_data and model_data["email"] != employee.email:
             existing = EmployeeRepository.get_employee_by_email(model_data["email"])
             if existing:
                 raise ValueError("Another employee with this email already exists.")
-
         # Update fields
         for key, value in model_data.items():
             setattr(employee, key, value)
@@ -120,15 +119,16 @@ class EmployeeService:
     @transaction.atomic
     def import_from_excel(file):
         """
-        Business logic for adding employees from imported excel to database.
+        Import employees from Excel.
+        Updates existing employees if email already exists.
         """
         wb = openpyxl.load_workbook(file)
         sheet = wb.active
 
         # Assumes row 1 is headers
         created = 0
-        skipped = 0
-        print("we here in import from excel")
+        updated = 0
+        print("Importing employees from Excel...")
 
         for row in sheet.iter_rows(min_row=2, values_only=True):
             (
@@ -143,30 +143,44 @@ class EmployeeService:
                 status,
             ) = row
 
-            # if EmployeeRepository.exists_by_email(email):
-            #     skipped += 1
-            #     continue
+            # Convert hire_date to date if it's datetime
+            if hire_date and isinstance(hire_date, datetime.datetime):
+                hire_date = hire_date.date()
 
-            # if hire_date and isinstance(hire_date, datetime.datetime):
-            #     hire_date = hire_date.date()
+            existing_employee = EmployeeRepository.get_employee_by_email(email)
 
-            EmployeeRepository.create_employee(
-                {
-                    "first_name": first_name,
-                    "last_name": last_name,
-                    "email": email,
-                    "phone": phone,
-                    "department": department,
-                    "position": position,
-                    "hire_date": hire_date,
-                    "salary": salary,
-                    "status": status,
-                }
-            )
+            if existing_employee:
+                EmployeeService.update_employee(
+                    existing_employee.id,
+                    {
+                        "first_name": first_name,
+                        "last_name": last_name,
+                        "phone": phone,
+                        "department": department,
+                        "position": position,
+                        "hire_date": hire_date,
+                        "salary": salary,
+                        "status": status,
+                    },
+                )
+                updated += 1
+            else:
+                EmployeeRepository.create_employee(
+                    {
+                        "first_name": first_name,
+                        "last_name": last_name,
+                        "email": email,
+                        "phone": phone,
+                        "department": department,
+                        "position": position,
+                        "hire_date": hire_date,
+                        "salary": salary,
+                        "status": status,
+                    }
+                )
+                created += 1
 
-            created += 1
-
-        return {"created": created, "skipped": skipped}
+        return {"created": created, "updated": updated}
 
     @staticmethod
     def export_to_excel():

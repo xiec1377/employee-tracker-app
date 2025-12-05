@@ -151,7 +151,7 @@ export async function uploadExcel(file: File) {
     method: "POST",
     body: formData,
   });
-  console.log("res:", res)
+  console.log("res import:", res)
   return res
   // return res.json();
 }

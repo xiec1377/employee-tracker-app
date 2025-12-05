@@ -18,7 +18,7 @@ class DeleteEmployeeThrottle(UserRateThrottle):
 
 
 class ImportEmployeesThrottle(UserRateThrottle):
-    rate = "3/min"
+    rate = "5/min"
 
 
 class ExportEmployeesThrottle(UserRateThrottle):

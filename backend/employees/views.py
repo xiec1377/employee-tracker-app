@@ -20,29 +20,29 @@ from .models import Employee
 
 @api_view(["GET"])
 @throttle_classes([GetEmployeesThrottle, AnonRateThrottle])
-def get_all_employees(request):
-    print("employees")
-    try:
-        employees = EmployeeService.get_employees()
-        print("employees:", employees)
-        return Response(employees, status=status.HTTP_200_OK)
-    except ValueError as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
 # def get_all_employees(request):
-#     print("getting all employees----")
+#     print("employees")
 #     try:
-#         # employees = EmployeeService.get_employees()  # QuerySet
-#         employees = Employee.objects.all()
-#         paginator = EmployeePagination()
-#         page = paginator.paginate_queryset(employees, request)
-
-#         serializer = EmployeeSerializer(page, many=True)
-#         return paginator.get_paginated_response(serializer.data)
-
+#         employees = EmployeeService.get_employees()
+#         print("employees:", employees)
+#         return Response(employees, status=status.HTTP_200_OK)
 #     except ValueError as e:
 #         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+def get_all_employees(request):
+    print("getting all employees----")
+    try:
+        # employees = EmployeeService.get_employees()  # QuerySet
+        employees = Employee.objects.all()
+        paginator = EmployeePagination()
+        page = paginator.paginate_queryset(employees, request)
+
+        serializer = EmployeeSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+    except ValueError as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["POST"])

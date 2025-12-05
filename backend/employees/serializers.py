@@ -77,3 +77,9 @@ class EmployeeSerializer(serializers.ModelSerializer):
                     f"Status must be one of: {', '.join(valid_statuses)}"
                 )
         return value
+
+    def validate_salary(self, value):
+        """Validate salary is a valid choice."""
+        if value is not None and value < 0:
+            raise serializers.ValidationError("Salary cannot be negative.")
+        return value

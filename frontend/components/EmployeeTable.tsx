@@ -6,7 +6,7 @@ import { fetchEmployees, fetchAllEmployees, createEmployee, deleteEmployee, upda
 import toast from 'react-hot-toast';
 import { formatPhone, formatPhoneInput } from '@/utils/formatPhone';
 import { isValidEmail } from '@/utils/emailValidator';
-import { AlertCircle, X } from "@deemlol/next-icons";
+import { AlertCircle, X, ArrowLeft, ArrowRight, Search, Upload, Download } from "@deemlol/next-icons";
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/formatDate';
 import { TableCell } from './table/TableCell';
@@ -58,6 +58,7 @@ export function EmployeeTable() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDepartment, setFilterDepartment] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Employee | null;
     direction: 'asc' | 'desc';
@@ -80,79 +81,79 @@ export function EmployeeTable() {
   const [undoStack, setUndoStack] = useState<Action[]>([]);
 
 // pagination
-  // useEffect(() => {
-  //   const loadEmployees = async () => {
-  //     try {
-  //       setIsLoading(true);
+const loadEmployees = async () => {
+  try {
+    setIsLoading(true);
 
-  //       const res = await fetchEmployees({
-  //         page,
-  //         page_size: pageSize,
-  //         search: searchTerm || undefined,
-  //         department: filterDepartment !== "all" ? filterDepartment : undefined,
-  //         ordering: sortConfig.key
-  //           ? `${sortConfig.direction === "desc" ? "-" : ""}${sortConfig.key}`
-  //           : undefined,
-  //       });
+    const res = await fetchEmployees({
+      page,
+      page_size: pageSize,
+      search: searchTerm || undefined,
+      department: filterDepartment !== "all" ? filterDepartment : undefined,
+      ordering: sortConfig.key
+        ? `${sortConfig.direction === "desc" ? "-" : ""}${sortConfig.key}`
+        : undefined,
+    });
 
-  //       if (res.status === 429) {
-  //         toast.error("Too many requests. Please try again later.");
-  //         return;
-  //       }
+    if (res.status === 429) {
+      toast.error("Too many requests. Please try again later.");
+      return;
+    }
 
-  //       if (!res.ok) {
-  //         toast.error("Failed to load employees...");
-  //         return;
-  //       }
+    if (!res.ok) {
+      toast.error("Failed to load employees...");
+      return;
+    }
 
-  //       const data = await res.json();
-  //       console.log("data:", data.results)
-  //       setEmployees(data.results || []);
-  //       setTotalCount(data.count ?? 0);
-  //     } catch (error) {
-  //       console.error("Error loading employees:", error);
-  //       toast.error("Failed to load employees...");
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
+    const data = await res.json();
+    console.log("data:", data.results)
+    setEmployees(data.results || data || []);
+    setTotalCount(data.count ?? data.length ?? 0); 
+  } catch (error) {
+    console.error("Error loading employees:", error);
+    toast.error("Failed to load employees...");
+  } finally {
+    setIsLoading(false);
+  }
+};
+useEffect(() => {
+  loadEmployees();
+}, [page, pageSize, searchTerm, filterDepartment, sortConfig]);
 
-  //   loadEmployees();
-  // }, [page, pageSize, searchTerm, filterDepartment, sortConfig]);
 
-  // const totalPages = Math.ceil(totalCount / pageSize);
+  const totalPages = Math.ceil(totalCount / pageSize);
 
 
   // all data
-  useEffect(() => {
-    const loadEmployees = async () => {
-      try {
-        const res = await fetchAllEmployees();
+  // useEffect(() => {
+  //   const loadEmployees = async () => {
+  //     try {
+  //       const res = await fetchAllEmployees();
   
-        if (res.status === 429) {
-          // const data = await res.json().catch(() => null);
-          toast.error("Too many requests. Please try again later.");
-          return;
-        }
+  //       if (res.status === 429) {
+  //         // const data = await res.json().catch(() => null);
+  //         toast.error("Too many requests. Please try again later.");
+  //         return;
+  //       }
   
-        if (!res.ok) {
-          // const data = await res.json().catch(() => null);
-          toast.error("Failed to load employees...");
-          return;
-        }
+  //       if (!res.ok) {
+  //         // const data = await res.json().catch(() => null);
+  //         toast.error("Failed to load employees...");
+  //         return;
+  //       }
   
-        const employees = await res.json();
-        console.log("employees-------------:", employees)
-        setEmployees(employees);
+  //       const employees = await res.json();
+  //       console.log("employees-------------:", employees)
+  //       setEmployees(employees);
   
-      } catch (error) {
-        console.error("Error loading employees:", error);
-        toast.error("Failed to load employees...");
-      }
-    };
+  //     } catch (error) {
+  //       console.error("Error loading employees:", error);
+  //       toast.error("Failed to load employees...");
+  //     }
+  //   };
   
-    loadEmployees();
-  }, []);
+  //   loadEmployees();
+  // }, []);
 
   
   // useMemo hook for caching expensive filtering calculatiosn
@@ -160,6 +161,18 @@ export function EmployeeTable() {
     () => Array.from(new Set(employees.map((emp) => emp.department))),
     [employees]
   );
+
+  // const departments = useMemo(
+  //   () =>
+  //     Array.from(
+  //       new Set(
+  //         employees.map(
+  //           (emp) => emp.department.charAt(0).toUpperCase() + emp.department.slice(1)
+  //         )
+  //       )
+  //     ),
+  //   [employees]
+  // );
 
   // Filter and sort employees
   const filteredAndSortedEmployees = useMemo(() => {
@@ -171,7 +184,9 @@ export function EmployeeTable() {
         );
       const matchesDepartment =
         filterDepartment === 'all' || employee.department === filterDepartment;
-      return matchesSearch && matchesDepartment;
+      const matchesStatus =
+        filterStatus === 'all' || employee.status === filterStatus;
+      return matchesSearch && matchesDepartment && matchesStatus;
     });
 
     if (sortConfig.key) {
@@ -212,8 +227,8 @@ export function EmployeeTable() {
   const getStatusBadge = (status: Employee['status']) => {
     const styles = {
       active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-      inactive: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
-      on_leave: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+      inactive: 'bg-gray-100 text-gray-800 dark:bg-red-800 dark:text-gray-200',
+      on_leave: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-200',
     };
 
     return (
@@ -224,14 +239,6 @@ export function EmployeeTable() {
       </span>
     );
   };
-
-  // const formatDate = (dateString: string) => {
-  //   return new Date(dateString).toLocaleDateString('en-US', {
-  //     year: 'numeric',
-  //     month: 'short',
-  //     day: 'numeric',
-  //   });
-  // };
  
 
   const handleAddEmployee = async () => {
@@ -239,16 +246,16 @@ export function EmployeeTable() {
     console.log("ADDING NEW EMPLOYEE...");
   
     if (!newEmployee.firstName || !newEmployee.lastName) return;
-    const payload = {
+    const payload: Omit<Employee, "id"> = {
       firstName: newEmployee.firstName,
       lastName: newEmployee.lastName,
-      email: newEmployee.email || "",
-      phone: newEmployee.phone || "",
-      department: newEmployee.department || "",
-      position: newEmployee.position || "",
-      hireDate: newEmployee.hireDate || null, //new Date().toISOString().split("T")[0],
-      salary: newEmployee.salary || 0,
-      status: newEmployee.status || "",
+      email: newEmployee.email ?? "",      // fallback to empty string if undefined
+      phone: newEmployee.phone ?? "",      // optional, default to empty string
+      department: newEmployee.department ?? "",
+      position: newEmployee.position ?? "",
+      hireDate: newEmployee.hireDate ?? null, // explicitly allow null
+      salary: newEmployee.salary ?? 0,        // default to 0 if undefined
+      status: newEmployee.status ?? "active", // default to active
     };
 
     console.log("payload:", payload)
@@ -413,9 +420,10 @@ export function EmployeeTable() {
       }
       toast.success("Excel file imported successfully!");
 
-      const result = await fetchAllEmployees();
-      console.log("result:", result)
-      setEmployees(result);
+      loadEmployees();
+      
+      // console.log("result------:", result)
+      // setEmployees(result.result);
   
     } catch (error) {
       console.error(error);
@@ -465,8 +473,16 @@ export function EmployeeTable() {
   // if (!formData.hireDate?.trim()) newErrors.hireDate = "Hire date is required";
   // if (!formData.salary) newErrors.salary = "Salary is required";
 
-  // Email format
+  // email format
   if (formData.email && !isValidEmail(formData.email)) newErrors.email = "Invalid email";
+
+  // phone format 
+  if (formData.phone) {
+    const phoneRegex = /^\(\d{3}\)-\d{3}-\d{4}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      newErrors.phone = "Phone number must be in the format (xxx)-xxx-xxxx";
+    }
+  }
 
   setErrors(newErrors);
   return Object.keys(newErrors).length === 0;
@@ -535,45 +551,44 @@ const undo = () => {
 
   const formData = editingEmployee || newEmployee;
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <button
-          onClick={() => {setIsFormModalOpen(true); setEditingEmployee(null); setNewEmployee({});  setErrors({});}}
-          className="bg-blue-500 px-3 py-1 text-white rounded"
-        >
-          + Employee
-        </button>
-        <button onClick={undo} disabled={undoStack.length === 0}>
-          Undo
-        </button>
-        <input
-          type="file"
-          id="excelUpload"
-          accept=".xlsx,.xls"
-          className="hidden"
-          onChange={handleImportUpload}
-        />
+    <div className="space-y-6 rounded-2xl border border-zinc-200 bg-gradient-to-b from-white via-white to-zinc-50 p-6 shadow-sm dark:border-zinc-800 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900">
 
-        <button
-          onClick={() => document.getElementById("excelUpload")!.click()}
-          className="bg-blue-500 px-3 py-1 text-white rounded"
-        >
-          Import
-        </button>
-        <button
-          onClick={handleExportFile}
-          className="bg-blue-500 px-3 py-1 text-white rounded"
-        > Export </button>
-        <div className="flex-1">
-          <input
-            type="text"
-            placeholder="Search employees, email, department, position..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm text-black placeholder-zinc-500 focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
-          />
-        </div>
-        <div className="flex items-center gap-2">
+<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-zinc-300 dark:border-zinc-700">
+  {/* Add Employee Button */}
+  <button
+    onClick={() => {
+      setIsFormModalOpen(true);
+      setEditingEmployee(null);
+      setNewEmployee({});
+      setErrors({});
+    }}
+    className="bg-blue-500 px-3 py-1 text-white rounded"
+  >
+    + Add Employee
+  </button>
+
+  <button onClick={undo} disabled={undoStack.length === 0}>
+    Undo
+  </button>
+  <div className="flex-1 relative">
+    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+      <Search size={24} color="#9ca3af" />
+    </div>
+
+    <input
+      type="text"
+      placeholder="Search employees, email, department, position..."
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      className="w-full rounded-lg border border-zinc-300 bg-white pl-10 pr-4 py-2 text-sm text-black placeholder-zinc-500 
+                focus:border-black focus:outline-none focus:ring-2 focus:ring-black 
+                dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
+    />
+  </div>
+</div>
+
+      <div>
+     <div className="flex justify-between"><div className="flex items-center gap-2">
           <label
             htmlFor="department-filter"
             className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
@@ -586,7 +601,7 @@ const undo = () => {
             onChange={(e) => setFilterDepartment(e.target.value)}
             className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-black focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
           >
-            <option value="all">All Departments</option>
+            <option value="all">All</option>
             {departments.map((dept) => (
               <option key={dept} value={dept}>
                 {dept}
@@ -594,7 +609,50 @@ const undo = () => {
             ))}
           </select>
         </div>
-      </div>
+        {/* <div className="flex items-center gap-2">
+          <label
+            htmlFor="status-filter"
+            className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+          >
+            Status:
+          </label>
+          <select
+            id="status-filter"
+            value={filterStatus}
+            onChange={(e) => setFilterDepartment(e.target.value)}
+            className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-black focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
+          >
+            <option value="all">All</option>
+            {departments.map((dept) => (
+              <option key={dept} value={dept}>
+                {dept}
+              </option>
+            ))}
+          </select>
+        </div> */}
+
+        <div className="flex flex-row gap-2"><input
+          type="file"
+          id="excelUpload"
+          accept=".xlsx,.xls"
+          className="hidden"
+          onChange={handleImportUpload}
+        />
+
+        <button
+          onClick={() => document.getElementById("excelUpload")!.click()}
+          className="px-3 py-1 text-white rounded flex items-center gap-2"
+          style={{ backgroundColor: "#6366f1" }}
+        >
+          <Upload size={20} color="#FFFFFF" />
+          <span>Upload</span>
+        </button>
+        <button
+          onClick={handleExportFile}
+          className="px-3 py-1 text-white rounded flex items-center gap-2"
+          style={{ backgroundColor: "#8b5cf6"}}
+        > <Download size={20} color="#FFFFFF" /><span>Download</span></button></div>
+      </div></div> 
 
       <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
         <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -700,26 +758,28 @@ const undo = () => {
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">
                     {getStatusBadge(employee.status)}
                   </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2">
-                    <button
-                      className="rounded-md bg-blue-500 px-2 py-1 text-white hover:bg-blue-600"
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-4">
+                    <span
+                      // className="rounded-md bg-blue-500 px-2 py-1 text-white hover:bg-blue-600"
+                      className="cursor-pointer text-blue-500"
                       onClick={() => {
                         setEditingEmployee(employee);
                         setIsFormModalOpen(true);
                         setErrors({});
                       }}
                     >
-                      Edit
-                    </button>
-                    <button
-                      className="rounded-md bg-red-500 px-2 py-1 text-white hover:bg-red-600"
+                      edit
+                    </span>
+                    <span
+                      // className="rounded-md bg-red-800 px-2 py-1 text-white hover:bg-red-600" 
+                      className="cursor-pointer text-red-700"
                       onClick={() => {
                         setDeletedEmployee(employee.id);
                         setIsDeleteModalOpen(true);
                       }}
                     >
-                      Delete
-                    </button>
+                      delete
+                    </span>
                   </td>
                 </tr>
               ))
@@ -733,11 +793,56 @@ const undo = () => {
         employees
       </div>
 
-      {/* <div>
-        <button disabled={page === 1} onClick={() => setPage(page - 1)}>Prev</button>
-        <span>{page} / {totalPages}</span>
-        <button disabled={page === totalPages} onClick={() => setPage(page + 1)}>Next</button>
-      </div> */}
+      <div className="flex items-center justify-center space-x-4 mt-4">
+  {/* Previous Arrow */}
+  <button
+    onClick={() => setPage(page - 1)}
+    disabled={page === 1}
+    className={`p-1 rounded-full text-lg transition ${
+      page === 1
+        ? 'text-zinc-400 cursor-not-allowed'
+        : 'text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white'
+    }`}
+  >
+    <ArrowLeft size={24} />
+  </button>
+
+  {/* Page Info */}
+  <span className="text-sm text-zinc-700 dark:text-zinc-300">
+    <span className="font-semibold">{page}</span> /{' '}
+    <span className="font-semibold">{totalPages}</span>
+  </span>
+
+  {/* Next Arrow */}
+  <button
+    onClick={() => setPage(page + 1)}
+    disabled={page === totalPages}
+    className={`p-1 rounded-full text-lg transition ${
+      page === totalPages
+        ? 'text-zinc-400 cursor-not-allowed'
+        : 'text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white'
+    }`}
+  >
+    <ArrowRight size={24} />
+  </button>
+</div>
+
+
+
+
+      {/* <button 
+        disabled={page === 1}
+        onClick={() => setPage(page - 1)}
+      >
+        Prev
+      </button>
+
+      <button 
+        disabled={page === totalPages}
+        onClick={() => setPage(page + 1)}
+      >
+        Next
+      </button> */}
       {isFormModalOpen && (
        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
        <div className="relative bg-white dark:bg-zinc-900 rounded-lg p-6 w-full max-w-md">
@@ -934,7 +1039,7 @@ const undo = () => {
                id="hireDate"
                type="date"
                value={
-                formData.hireDate
+                formData.hireDate || ""
               }
               onChange={(e) => {
                 const value = e.target.value; 
