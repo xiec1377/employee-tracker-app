@@ -133,11 +133,8 @@ export function EmployeeTable() {
   };
   useEffect(() => {
     loadEmployees();
-  }, [page, pageSize, searchTerm, filterDepartment, sortConfig]);
+  }, [page, pageSize, filterDepartment, sortConfig]); // search
 
-  useEffect(() => {
-    console.log('employees, ', employees);
-  }, [employees]);
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
@@ -522,6 +519,7 @@ export function EmployeeTable() {
 
           return newEmployees;
         } else if (lastAction.type === 'edit') {
+          // TOOO
           return prevEmployees.map((emp) =>
             emp.id.toString() === lastAction.employeeId ? lastAction.previousData : emp,
           );
@@ -529,7 +527,6 @@ export function EmployeeTable() {
         return prevEmployees;
       });
 
-      // Remove last action from stack
       return prevStack.slice(0, -1);
     });
   };
@@ -759,7 +756,7 @@ export function EmployeeTable() {
                         setErrors({});
                       }}
                     >
-                      edit
+                      Edit
                     </span>
                     <span
                       // className="rounded-md bg-red-800 px-2 py-1 text-white hover:bg-red-600"
@@ -769,7 +766,7 @@ export function EmployeeTable() {
                         setIsDeleteModalOpen(true);
                       }}
                     >
-                      delete
+                      Delete
                     </span>
                   </td>
                 </tr>

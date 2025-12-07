@@ -35,10 +35,6 @@ export default function EmployeeCharts() {
   }, []);
 
   const totalEmployees = employees.length;
-  const activeEmployees = statusCounts['active'] || 0;
-  const inactiveEmployees = statusCounts['inactive'] || 0;
-  const onLeaveEmployees = statusCounts['on_leave'] || 0;
-
   const barData = useMemo(
     () => ({
       labels: Object.keys(departmentCounts),
