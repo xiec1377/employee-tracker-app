@@ -37,7 +37,15 @@ DEBUG = True
 #     "127.0.0.1",
 #     "employee-tracker-app-75l7.onrender.com",
 # ]
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
+
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+
+env_hosts = os.environ.get("ALLOWED_HOSTS")
+if env_hosts:
+    ALLOWED_HOSTS += env_hosts.split(",")
+
+
+# ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 
 
 INSTALLED_APPS = [

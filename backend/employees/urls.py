@@ -18,12 +18,10 @@ from .views import (
 )
 
 urlpatterns = [
-    path("", create_employee, name="create-employee"),  # POST /api/employees/
-    # Get all employees
+    path("", get_all_employees, name="get-all-employees"),  # GET /api/employees/
     path(
-        "all/", get_all_employees, name="get-all-employees"
-    ),  # GET /api/employees/all/
-    # Delete an employee
+        "create/", create_employee, name="create-employee"
+    ),  # POST /api/employees/create
     path(
         "<int:id>/", delete_employee, name="delete-employee"
     ),  # DELETE /api/employees/<id>/

@@ -63,7 +63,7 @@ export async function fetchEmployees(params: {
     if (params.department) query.set('department', params.department);
     if (params.ordering) query.set('ordering', params.ordering);
 
-    const res = await fetch(`${API_BASE_URL}/employees/all/`, {
+    const res = await fetch(`${API_BASE_URL}/employees/`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ export async function fetchEmployees(params: {
 export async function fetchAllEmployees(): Promise<Response> {
   console.log('fetching all employees...');
   try {
-    const res = await fetch(`${API_BASE_URL}/employees/all/`, {
+    const res = await fetch(`${API_BASE_URL}/employees/`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -113,7 +113,7 @@ export async function fetchEmployeeById(id: number): Promise<Response> {
 export async function createEmployee(employeeData: Omit<Employee, 'id'>): Promise<Response> {
   console.log('creating employee... with data', employeeData);
   try {
-    const res = await fetch(`${API_BASE_URL}/employees/`, {
+    const res = await fetch(`${API_BASE_URL}/employees/create/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
