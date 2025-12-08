@@ -29,10 +29,15 @@ SECRET_KEY = "django-insecure-c^x!0wr%%0&cb6z#$s4k&grjdx-_s!z^5isxa&lz6d)03s+vwv
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
 
+# hardcode adding allowed hosts
+# ALLOWED_HOSTS = [
+#     "localhost",
+#     "127.0.0.1",
+#     "employee-tracker-app-75l7.onrender.com",
+# ]
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 
-# Application definition
 
 INSTALLED_APPS = [
     "corsheaders",
