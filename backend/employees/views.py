@@ -92,6 +92,7 @@ def delete_employee(request, id):
 @parser_classes([MultiPartParser])
 @throttle_classes([ImportEmployeesThrottle, AnonRateThrottle])
 def import_employees(request):
+    print("importing employees...")
     try:
         excel_file = request.FILES["file"]
         result = EmployeeService.import_from_excel(excel_file)

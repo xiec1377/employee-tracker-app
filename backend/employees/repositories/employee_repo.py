@@ -22,7 +22,7 @@ class EmployeeRepository:
         """
         Creates a new Employee in the database.
         """
-        print("creating employee in repo layer...", employee_data)
+        # print("creating employee in repo layer...", employee_data)
         employee = Employee.objects.create(**employee_data)
         return employee
 

@@ -35,7 +35,7 @@ class EmployeeService:
             raise ValueError("Employee with this email already exists.")
 
         employee = EmployeeRepository.create_employee(model_data)
-        print("employee---- ", employee)
+        # print("employee---- ", employee)
         return employee
         # serializer = EmployeeSerializer(employee)
         # return serializer.data
@@ -143,7 +143,6 @@ class EmployeeService:
                 status,
             ) = row
 
-            # Convert hire_date to date if it's datetime
             if hire_date and isinstance(hire_date, datetime.datetime):
                 hire_date = hire_date.date()
 
@@ -221,7 +220,6 @@ class EmployeeService:
                     emp.department,
                     emp.position,
                     emp.hire_date,
-                    # emp.salary,
                     salary_value,
                     emp.status,
                 ]

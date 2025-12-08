@@ -59,10 +59,8 @@ export async function fetchEmployees(params: {
       headers: {
         'Content-Type': 'application/json',
       },
-      // caching the response for 60 seconds
       next: { revalidate: 60 },
     });
-    // console.log("Res:", res.json())
     return res;
   } catch (error) {
     console.error('Error fetching employees:', error);
@@ -81,12 +79,6 @@ export async function fetchAllEmployees(): Promise<Response> {
       // caching the response for 60 seconds
       next: { revalidate: 60 },
     });
-
-    // if (!response.ok) {
-    //   throw new Error(`Failed to fetch employees: ${response.statusText}`);
-    // }
-
-    // return await response.json();
     return res;
   } catch (error) {
     console.error('Error fetching employees:', error);
@@ -102,12 +94,6 @@ export async function fetchEmployeeById(id: number): Promise<Response> {
         'Content-Type': 'application/json',
       },
     });
-
-    // if (!response.ok) {
-    //   throw new Error(`Failed to fetch employee: ${response.statusText}`);
-    // }
-
-    // return await response.json();
     return res;
   } catch (error) {
     console.error(`Error fetching employee ${id}:`, error);
@@ -125,12 +111,6 @@ export async function createEmployee(employeeData: Omit<Employee, 'id'>): Promis
       },
       body: JSON.stringify(employeeData),
     });
-
-    // if (!response.ok) {
-    //   throw new Error(`Failed to create employee: ${response.statusText}`);
-    // }
-
-    // return await response.json();
     return res;
   } catch (error) {
     console.error('Error creating employee:', error);
@@ -150,13 +130,6 @@ export async function updateEmployee(
       },
       body: JSON.stringify(employeeData),
     });
-
-    // if (!response.ok) {
-    //   throw new Error(`Failed to update employee: ${response.statusText}`);
-    // }
-
-    // return await response.json();
-
     return res;
   } catch (error) {
     console.error(`Error updating employee ${id}:`, error);
@@ -169,10 +142,6 @@ export async function deleteEmployee(id: number): Promise<Response> {
     const res = await fetch(`${API_BASE_URL}/employees/${id}/`, {
       method: 'DELETE',
     });
-
-    // if (!response.ok) {
-    //   throw new Error(`Failed to delete employee: ${response.statusText}`);
-    // }
     return res;
   } catch (error) {
     console.error(`Error deleting employee ${id}:`, error);
@@ -187,9 +156,8 @@ export async function uploadExcel(file: File) {
     method: 'POST',
     body: formData,
   });
-  console.log('res import:', res);
+  // console.log('res import:', res);
   return res;
-  // return res.json();
 }
 
 export async function downloadExcel() {

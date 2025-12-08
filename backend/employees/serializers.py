@@ -47,11 +47,9 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     def validate_email(self, value):
         """Validate email if provided."""
-        # During create, check if email exists (excluding current instance during update)
         if value:
             instance = getattr(self, "instance", None)
             if instance:
-                # Update: check if email exists for other employees
                 if (
                     Employee.objects.filter(email=value)
                     .exclude(pk=instance.pk)
@@ -61,7 +59,6 @@ class EmployeeSerializer(serializers.ModelSerializer):
                         "An employee with this email already exists."
                     )
             else:
-                # Create: check if email exists
                 if Employee.objects.filter(email=value).exists():
                     raise serializers.ValidationError(
                         "An employee with this email already exists."
