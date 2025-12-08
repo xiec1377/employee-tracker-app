@@ -1,6 +1,8 @@
 from ..repositories.employee_repo import EmployeeRepository
 from ..models import Employee
-from bson.decimal128 import Decimal128
+
+# from bson.decimal128 import Decimal128
+from decimal import Decimal
 from ..serializers import EmployeeSerializer
 import openpyxl
 from django.db import transaction
@@ -81,11 +83,18 @@ class EmployeeService:
         employee_list = []
         for employee in employees:
             salary = None
+            # if employee.salary is not None:
+            #     if isinstance(employee.salary, Decimal):
+            #         salary = float(employee.salary.to_decimal())
+            #     else:
+            #         salary = float(employee.salary)
             if employee.salary is not None:
-                if isinstance(employee.salary, Decimal128):
-                    salary = float(employee.salary.to_decimal())
+                if isinstance(employee.salary, Decimal):
+                    salary = float(employee.salary)
                 else:
                     salary = float(employee.salary)
+            else:
+                salary = None
             employee_list.append(
                 {
                     "id": employee.id,
@@ -206,10 +215,13 @@ class EmployeeService:
         employees = EmployeeRepository.get_all_employees()
 
         for emp in employees:
+            # salary_value = (
+            #     float(emp.salary.to_decimal())
+            #     if isinstance(emp.salary, Decimal)
+            #     else emp.salary
+            # )
             salary_value = (
-                float(emp.salary.to_decimal())
-                if isinstance(emp.salary, Decimal128)
-                else emp.salary
+                float(emp.salary) if isinstance(emp.salary, Decimal) else emp.salary
             )
             ws.append(
                 [
