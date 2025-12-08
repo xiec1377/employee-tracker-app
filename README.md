@@ -1,4 +1,4 @@
-<img width="1880" height="892" alt="image" src="https://github.com/user-attachments/assets/455e0034-456f-4ac3-9317-1f7baea00ee5" />﻿# employee-tracker-app
+﻿# employee-tracker-app
 
 Live [here](https://employee-tracker-app-one.vercel.app/)!
 
@@ -23,3 +23,4 @@ Backend/architecture features:
 - pagination with page size 10
 
 <img width="1880" height="892" alt="image" src="https://github.com/user-attachments/assets/b1dcbfd5-8d4b-4c71-833e-9babb60f292c" />
+
