@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # from pymongo import MongoClient
 
@@ -88,7 +89,6 @@ WSGI_APPLICATION = "backend.wsgi.application"
 
 # MongoDB Configuration using djongo
 # Set these via environment variables or update directly
-import os
 
 # MONGODB_HOST = os.environ.get("MONGODB_HOST", "localhost")
 # MONGODB_PORT = int(os.environ.get("MONGODB_PORT", "27017"))
