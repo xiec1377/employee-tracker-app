@@ -1,10 +1,10 @@
-import { Employee } from './employee';
+import { Employee } from './Employee';
 
 export type Action =
-  | { type: 'edit'; employeeId: string; previousData: Employee }
+  // | { type: 'edit'; employeeId: number; previousData: Employee }
   | {
       type: 'delete';
-      employeeId: string;
+      employeeId: number;
       previousData: Employee;
       index: number;
       timeoutId: NodeJS.Timeout;

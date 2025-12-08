@@ -34,11 +34,6 @@ DEBUG = True
 
 
 # hardcode adding allowed hosts
-# ALLOWED_HOSTS = [
-#     "localhost",
-#     "127.0.0.1",
-#     "employee-tracker-app-75l7.onrender.com",
-# ]
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
@@ -94,10 +89,6 @@ TEMPLATES = [
 WSGI_APPLICATION = "backend.wsgi.application"
 
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-# MongoDB Configuration using djongo
 # Set these via environment variables or update directly
 
 # MONGODB_HOST = os.environ.get("MONGODB_HOST", "localhost")
@@ -177,7 +168,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = "static/"
+# STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -18,38 +17,30 @@ import { StatPill } from './StatPill';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 export default function EmployeeCharts() {
-  const departmentCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    employees.forEach((emp) => {
-      counts[emp.department] = (counts[emp.department] || 0) + 1;
-    });
-    return counts;
-  }, []);
+  const departmentCounts: Record<string, number> = {};
+  employees.forEach((emp) => {
+    departmentCounts[emp.department] = (departmentCounts[emp.department] || 0) + 1;
+  });
 
-  const statusCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    employees.forEach((emp) => {
-      counts[emp.status] = (counts[emp.status] || 0) + 1;
-    });
-    return counts;
-  }, []);
+  const statusCounts: Record<string, number> = {};
+  employees.forEach((emp) => {
+    statusCounts[emp.status] = (statusCounts[emp.status] || 0) + 1;
+  });
 
   const totalEmployees = employees.length;
-  const barData = useMemo(
-    () => ({
-      labels: Object.keys(departmentCounts),
-      datasets: [
-        {
-          label: 'Employees',
-          data: Object.values(departmentCounts),
-          backgroundColor: '#6366f1',
-          borderRadius: 8,
-          borderSkipped: false,
-        },
-      ],
-    }),
-    [departmentCounts],
-  );
+
+  const barData = {
+    labels: Object.keys(departmentCounts),
+    datasets: [
+      {
+        label: 'Employees',
+      data: Object.values(departmentCounts),
+        backgroundColor: '#6366f1',
+        borderRadius: 8,
+        borderSkipped: false,
+      },
+    ],
+  };
 
   const barOptions = {
     responsive: true,
@@ -96,23 +87,19 @@ export default function EmployeeCharts() {
     },
   };
 
-  const donutData = useMemo(
-    () => ({
-      labels: Object.keys(statusCounts),
-      datasets: [
-        {
-          label: 'Employee Status',
-          data: Object.values(statusCounts),
-          backgroundColor: ['#3b82f6', '#6366f1', '#8b5cf6', '#a855f7'],
-
-          borderWidth: 2,
-          borderColor: '#020617',
-          hoverOffset: 6,
-        },
-      ],
-    }),
-    [statusCounts],
-  );
+  const donutData = {
+    labels: Object.keys(statusCounts),
+    datasets: [
+      {
+        label: 'Employee Status',
+        data: Object.values(statusCounts),
+        backgroundColor: ['#3b82f6', '#6366f1', '#8b5cf6', '#a855f7'],
+        borderWidth: 2,
+        borderColor: '#020617',
+        hoverOffset: 6,
+      },
+    ],
+  };
 
   const donutOptions = {
     responsive: true,
@@ -152,16 +139,8 @@ export default function EmployeeCharts() {
           </p>
         </div>
 
-        <div className="">
+        <div>
           <StatPill label="Total" value={totalEmployees} />
-          {/* <StatPill
-            label="Active"
-            value={activeEmployees}
-          />
-          <StatPill
-            label="On leave"
-            value={onLeaveEmployees}
-          /> */}
         </div>
       </div>
 
@@ -182,7 +161,6 @@ export default function EmployeeCharts() {
             <Bar data={barData} options={barOptions} />
           </div>
         </div>
-
         <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-indigo-500/10" />
           <div className="relative flex items-center justify-between gap-2">
