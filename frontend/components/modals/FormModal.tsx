@@ -2,8 +2,8 @@
 
 import { AlertCircle, X } from '@deemlol/next-icons';
 import { formatPhoneInput } from '@/utils/formatPhone';
-import type { Employee } from '@/types/Employee';
 import { departmentOptions } from '@/constants/departments';
+import type { Employee } from '@/types/Employee';
 
 type FormModalProps = {
   isOpen: boolean;
