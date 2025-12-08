@@ -27,45 +27,7 @@ import { TableCell } from './TableCell';
 import { Action } from '@/types/Action';
 import { FormModal } from '../modals/FormModal';
 import { DeleteModal } from '../modals/DeleteModal';
-
-// const mockEmployees: Employee[] = [
-//   {
-//     id: 1,
-//     firstName: 'John',
-//     lastName: 'Doe',
-//     email: 'john.doe@company.com',
-//     phone: '+1 (555) 123-4567',
-//     department: 'Engineering',
-//     position: 'Senior Software Engineer',
-//     hireDate: '2022-01-15',
-//     salary: 120000,
-//     status: 'active',
-//   },
-//   {
-//     id: 2,
-//     firstName: 'Jane',
-//     lastName: 'Smith',
-//     email: 'jane.smith@company.com',
-//     phone: '+1 (555) 234-5678',
-//     department: 'Marketing',
-//     position: 'Marketing Manager',
-//     hireDate: '2021-06-10',
-//     salary: 95000,
-//     status: 'active',
-//   },
-//   {
-//     id: 3,
-//     firstName: 'Mike',
-//     lastName: 'Johnson',
-//     email: 'mike.johnson@company.com',
-//     phone: '+1 (555) 345-6789',
-//     department: 'Sales',
-//     position: 'Sales Representative',
-//     hireDate: '2023-03-20',
-//     salary: 65000,
-//     status: 'active',
-//   },
-// ];
+import { departmentOptions } from '@/constants/departments';
 
 export function EmployeeTable() {
   // const [employees] = useState<Employee[]>(mockEmployees);
@@ -567,11 +529,15 @@ export function EmployeeTable() {
               className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-black focus:border-black focus:outline-none focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
             >
               <option value="all">All</option>
-              {departments.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
+              {departments.map((dept) => {
+                const option = departmentOptions.find((opt) => opt.value === dept);
+
+                return (
+                  <option key={dept} value={dept}>
+                    {option?.label ?? dept}
+                  </option>
+                );
+              })}
             </select>
           </div>
           <div className="flex flex-row gap-2">
