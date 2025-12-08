@@ -17,8 +17,16 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import RedirectView
+
+
+# def home(request):
+#     return HttpResponse("Employee Tracker API is running 🚀")
+
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    # path("admin/", admin.site.urls),
     path("api/employees/", include("employees.urls")),
+    # path("", home),
+    path("", RedirectView.as_view(url="/api/employees/", permanent=False)),
 ]
