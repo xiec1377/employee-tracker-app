@@ -1,14 +1,13 @@
 import type { Employee } from '@/types/Employee';
+import { API_BASE_URL } from './config';
 
-const API_BASE_URL = "http://localhost:8000/api" //"https://employee-tracker-app-75l7.onrender.com/api"; // process.env.NEXT_PUBLIC_API_URL || ;
-
+// const API_BASE_URL = 'http://localhost:8000/api'; //"https://employee-tracker-app-75l7.onrender.com/api"; // process.env.NEXT_PUBLIC_API_URL || ;
 
 // switch between local and prod backend url
-// const API_BASE_URL = 
+// const API_BASE_URL =
 //   window.location.hostname === "localhost"
 //     ? "http://localhost:8000/api"
 //     : "https://employee-tracker-app-75l7.onrender.com/api";
-
 
 export async function fetchEmployees(params: {
   page: number;
