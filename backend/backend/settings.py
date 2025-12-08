@@ -11,7 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-from pymongo import MongoClient
+
+# from pymongo import MongoClient
 
 # from django.utils.timezone import UTC
 
@@ -124,8 +125,8 @@ DATABASES = {
     }
 }
 
-MONGO_CLIENT = MongoClient("mongodb://localhost:27017/")
-MONGO_DB = MONGO_CLIENT["employee-tracker-app-db"]
+# MONGO_CLIENT = MongoClient("mongodb://localhost:27017/")
+# MONGO_DB = MONGO_CLIENT["employee-tracker-app-db"]
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
