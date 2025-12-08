@@ -1,7 +1,7 @@
 import type { Employee } from '@/types/Employee';
-// import { API_BASE_URL } from './config';
+import { API_BASE_URL } from './config';
 
-const API_BASE_URL = "https://employee-tracker-app-75l7.onrender.com/api"; //"https://employee-tracker-app-75l7.onrender.com/api"; // process.env.NEXT_PUBLIC_API_URL || ;
+// const API_BASE_URL = "https://employee-tracker-app-75l7.onrender.com/api"; //"https://employee-tracker-app-75l7.onrender.com/api"; // process.env.NEXT_PUBLIC_API_URL || ;
 
 // switch between local and prod backend url
 // const API_BASE_URL =
